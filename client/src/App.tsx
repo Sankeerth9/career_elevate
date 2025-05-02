@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Route, Switch } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,21 +33,21 @@ function Router() {
   // We'll create a protected route component later if needed
   return (
     <Suspense fallback={<Loading />}>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="payment" element={<Payment />} /> {/* Will handle auth check in component */}
-          <Route path="career-assessment" element={<CareerAssessment />} />
-          <Route path="explore-careers" element={<ExploreCareers />} />
-          <Route path="educational-pathways" element={<EducationalPathways />} />
-          <Route path="job-listings" element={<JobListings />} />
-          <Route path="career/:id" element={<CareerDetails />} />
-          <Route path="ai-recommendations" element={<AIRecommendations />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+      <Layout>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <Route path="/payment" component={Payment} /> {/* Will handle auth check in component */}
+          <Route path="/career-assessment" component={CareerAssessment} />
+          <Route path="/explore-careers" component={ExploreCareers} />
+          <Route path="/educational-pathways" component={EducationalPathways} />
+          <Route path="/job-listings" component={JobListings} />
+          <Route path="/career/:id" component={CareerDetails} />
+          <Route path="/ai-recommendations" component={AIRecommendations} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
     </Suspense>
   );
 }

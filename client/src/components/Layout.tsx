@@ -1,7 +1,6 @@
-import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import { Suspense } from "react";
+import { Suspense, ReactNode } from "react";
 
 // Loading fallback component
 const LoadingContent = () => (
@@ -13,13 +12,13 @@ const LoadingContent = () => (
   </div>
 );
 
-export default function Layout() {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-grow">
         <Suspense fallback={<LoadingContent />}>
-          <Outlet />
+          {children}
         </Suspense>
       </main>
       <Footer />

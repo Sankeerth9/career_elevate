@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/authContext";
@@ -17,7 +17,7 @@ export default function Header() {
   };
 
   const isActive = (path: string) => {
-    return location.pathname === path;
+    return location[0] === path;
   };
 
   return (
