@@ -19,6 +19,10 @@ export interface Recommendation {
     demandLevel: "high" | "medium" | "low";
     notes: string;
   }[];
+  // New fields for enhanced education recommendations
+  entranceExams?: string;
+  recommendedColleges?: string;
+  budgetCategory?: string;
 }
 
 /**
@@ -67,15 +71,35 @@ function convertAiRecommendationsToStandard(aiRecommendations: AiCareerRecommend
  * Creates generic career recommendations based on education level
  * Used as a fallback when no pathways exist in the database
  */
+import { 
+  getEntranceExamsByEducationLevel, 
+  getEntranceExamsByCareerPath,
+  getCollegesByFilters,
+  EntranceExam,
+  College
+} from './entranceExamData';
+
+interface EnhancedRecommendation {
+  id: number;
+  title: string;
+  careerOptions: string[];
+  suggestedCourses: string[];
+  requiredExams: EntranceExam[];
+  suggestedColleges: College[];
+  salaryRange: string;
+  growthPotential: string;
+}
+
 function createGenericRecommendations(assessment: CareerAssessment): Recommendation[] {
   const recommendations: Recommendation[] = [];
   
   // Default fields by education level
-  const fields: Record<string, { id: number, title: string, careers: string[], courses: string[], salary: string, growth: string }[]> = {
+  const fields: Record<string, { id: number, title: string, careerPath: string, careers: string[], courses: string[], salary: string, growth: string }[]> = {
     "10th": [
       {
         id: 101,
         title: "Technical Trades",
+        careerPath: "engineering",
         careers: ["Electrician", "Plumber", "HVAC Technician", "Automotive Mechanic"],
         courses: ["ITI Certificate", "Technical Diploma", "Apprenticeship Programs"],
         salary: "₹1.8L - ₹4L",
@@ -84,6 +108,7 @@ function createGenericRecommendations(assessment: CareerAssessment): Recommendat
       {
         id: 102,
         title: "Service Industry",
+        careerPath: "business",
         careers: ["Retail Associate", "Customer Service Representative", "Hospitality Staff"],
         courses: ["Short-term Certificate Programs", "On-the-job Training"],
         salary: "₹1.5L - ₹3L",
@@ -93,55 +118,106 @@ function createGenericRecommendations(assessment: CareerAssessment): Recommendat
     "12th": [
       {
         id: 201,
-        title: "Technical Education",
-        careers: ["Technician", "Lab Assistant", "Computer Operator", "Junior Engineer"],
-        courses: ["Polytechnic Diploma", "Technical Certificate", "Associate Degree"],
-        salary: "₹2.5L - ₹6L",
-        growth: "Good"
+        title: "Engineering Pathway",
+        careerPath: "engineering",
+        careers: ["Engineer", "Technician", "IT Professional", "Product Designer"],
+        courses: ["B.Tech", "B.E.", "Polytechnic Diploma"],
+        salary: "₹3.5L - ₹12L",
+        growth: "High"
       },
       {
         id: 202,
-        title: "Administrative Work",
-        careers: ["Office Assistant", "Data Entry Specialist", "Bank Clerk", "Administrative Support"],
-        courses: ["BBA", "B.Com", "Certificate in Office Management"],
-        salary: "₹2L - ₹5L",
-        growth: "Stable"
+        title: "Medical Pathway",
+        careerPath: "medical",
+        careers: ["Doctor", "Dentist", "Pharmacist", "Allied Health Professional"],
+        courses: ["MBBS", "BDS", "B.Pharm", "Allied Health Courses"],
+        salary: "₹5L - ₹40L",
+        growth: "Very High"
+      },
+      {
+        id: 203,
+        title: "Commerce Pathway",
+        careerPath: "commerce",
+        careers: ["Accountant", "Business Analyst", "Financial Advisor", "Bank PO"],
+        courses: ["B.Com", "BBA", "Chartered Accountancy", "Company Secretary"],
+        salary: "₹3L - ₹10L",
+        growth: "Steady"
+      },
+      {
+        id: 204,
+        title: "Law Pathway",
+        careerPath: "law",
+        careers: ["Lawyer", "Legal Advisor", "Corporate Legal Counsel", "Judicial Services"],
+        courses: ["LLB", "Integrated Law Programs"],
+        salary: "₹4L - ₹25L",
+        growth: "Good"
       }
     ],
     "graduation": [
       {
         id: 301,
-        title: "Professional Services",
-        careers: ["Business Analyst", "HR Professional", "Marketing Associate", "Financial Advisor"],
-        courses: ["MBA", "Specialized Certifications", "Professional Development Courses"],
-        salary: "₹4L - ₹12L",
+        title: "Management & Business",
+        careerPath: "business",
+        careers: ["Business Manager", "Consultant", "Marketing Specialist", "Financial Analyst"],
+        courses: ["MBA", "PGDM", "Specialized Management Programs"],
+        salary: "₹6L - ₹20L",
         growth: "High"
       },
       {
         id: 302,
-        title: "Technology",
-        careers: ["Software Developer", "Network Administrator", "IT Support Specialist", "Web Developer"],
-        courses: ["Computer Science", "IT Certifications", "Coding Bootcamps"],
-        salary: "₹3.5L - ₹18L",
+        title: "Technology & IT",
+        careerPath: "engineering",
+        careers: ["Software Engineer", "Data Scientist", "AI Specialist", "Cloud Architect"],
+        courses: ["M.Tech", "MCA", "Specialized Tech Certifications"],
+        salary: "₹5L - ₹25L",
         growth: "Very High"
+      },
+      {
+        id: 303,
+        title: "Civil Services",
+        careerPath: "civilservice",
+        careers: ["IAS Officer", "IPS Officer", "IRS Officer", "State Civil Services"],
+        courses: ["Civil Services Coaching", "Public Administration Courses"],
+        salary: "₹6L - ₹15L",
+        growth: "Stable"
+      },
+      {
+        id: 304,
+        title: "Higher Education & Research",
+        careerPath: "research",
+        careers: ["Researcher", "Professor", "Scientist", "Education Specialist"],
+        courses: ["PhD", "M.Phil", "Research Programs"],
+        salary: "₹5L - ₹15L",
+        growth: "Moderate"
       }
     ],
     "post_graduation": [
       {
         id: 401,
-        title: "Management & Consulting",
-        careers: ["Management Consultant", "Project Manager", "Strategy Advisor", "Business Development Manager"],
+        title: "Executive Management",
+        careerPath: "business",
+        careers: ["Senior Manager", "Director", "C-Suite Executive", "Management Consultant"],
         courses: ["Executive MBA", "Leadership Development", "Project Management Professional"],
-        salary: "₹8L - ₹25L",
+        salary: "₹15L - ₹50L+",
         growth: "Excellent"
       },
       {
         id: 402,
-        title: "Research & Development",
-        careers: ["Research Scientist", "Product Developer", "Academic Researcher", "R&D Specialist"],
-        courses: ["PhD", "Specialized Research Programs", "Advanced Technical Training"],
-        salary: "₹6L - ₹20L",
+        title: "Specialized Research",
+        careerPath: "research",
+        careers: ["Principal Researcher", "R&D Head", "Chief Scientist", "Academic Director"],
+        courses: ["Post-Doctoral Research", "Advanced Specialization Courses"],
+        salary: "₹10L - ₹30L",
         growth: "High"
+      },
+      {
+        id: 403,
+        title: "Policy & Governance",
+        careerPath: "civilservice",
+        careers: ["Policy Analyst", "Think Tank Researcher", "International Relations Specialist"],
+        courses: ["Policy Analysis Programs", "Governance Studies", "International Relations"],
+        salary: "₹10L - ₹25L",
+        growth: "Moderate"
       }
     ]
   };
@@ -157,8 +233,9 @@ function createGenericRecommendations(assessment: CareerAssessment): Recommendat
     
     // Adjust score based on career aim if available
     if (assessment.careerAim) {
-      if (field.title.toLowerCase().includes(assessment.careerAim.toLowerCase())) {
-        score += 15;
+      if (field.careerPath.toLowerCase() === assessment.careerAim.toLowerCase() ||
+          field.title.toLowerCase().includes(assessment.careerAim.toLowerCase())) {
+        score += 20;
         reason += ` and interest in ${assessment.careerAim}`;
       }
     }
@@ -169,6 +246,29 @@ function createGenericRecommendations(assessment: CareerAssessment): Recommendat
       reason += ` with consideration for your personal interests`;
     }
     
+    // Get relevant entrance exams
+    const entranceExams = getEntranceExamsByEducationLevel(eduLevel);
+    const careerExams = getEntranceExamsByCareerPath(field.careerPath);
+    
+    // Find exams that match both education level and career path
+    const relevantExams = entranceExams.filter(exam => 
+      careerExams.some(careerExam => careerExam.id === exam.id)
+    );
+    
+    // Get college recommendations based on budget
+    const budgetLevel = assessment.budget || "medium";
+    const collegeRecommendations = getCollegesByFilters(field.careerPath, budgetLevel);
+    
+    // Format entrance exam info
+    const entranceExamInfo = relevantExams.length > 0 
+      ? relevantExams.map(exam => `${exam.name}: ${exam.fullName} (${exam.minPercentileRequired}th percentile required)`).join(", ")
+      : "No specific entrance exams required";
+    
+    // Format college recommendations
+    const collegeInfo = collegeRecommendations.length > 0
+      ? collegeRecommendations.slice(0, 3).map(college => college.name).join(", ")
+      : "Explore colleges based on your location preference";
+    
     recommendations.push({
       pathwayId: field.id,
       score: score,
@@ -177,7 +277,11 @@ function createGenericRecommendations(assessment: CareerAssessment): Recommendat
       estimatedSalary: field.salary,
       growthPotential: field.growth,
       suggestedCourses: field.courses,
-      timeToEmployment: eduLevel === "10th" || eduLevel === "12th" ? "6-18 months" : "1-3 years"
+      timeToEmployment: eduLevel === "10th" || eduLevel === "12th" ? "6-18 months" : "1-3 years",
+      // Add entrance exam and college information
+      entranceExams: entranceExamInfo,
+      recommendedColleges: collegeInfo,
+      budgetCategory: budgetLevel
     });
   }
   
@@ -213,6 +317,15 @@ export async function getBasicRecommendations(assessment: CareerAssessment): Pro
     let score = 60; // Base score
     let reason = "Matches your educational background";
     
+    // Determine career path based on pathway title
+    let careerPath = "general";
+    if (pathway.title?.toLowerCase().includes("engineering")) careerPath = "engineering";
+    else if (pathway.title?.toLowerCase().includes("medical")) careerPath = "medical";
+    else if (pathway.title?.toLowerCase().includes("law")) careerPath = "law";
+    else if (pathway.title?.toLowerCase().includes("commerce") || pathway.title?.toLowerCase().includes("business")) careerPath = "commerce";
+    else if (pathway.title?.toLowerCase().includes("art") || pathway.title?.toLowerCase().includes("design")) careerPath = "arts";
+    else if (pathway.title?.toLowerCase().includes("civil service")) careerPath = "civilservice";
+    
     // Adjust score based on career aim
     if (assessment.careerAim) {
       if (pathway.title && pathway.title.toLowerCase().includes(assessment.careerAim.toLowerCase())) {
@@ -240,23 +353,50 @@ export async function getBasicRecommendations(assessment: CareerAssessment): Pro
         estimatedSalary = "₹6L - ₹25L";
         growthPotential = "High";
         suggestedCourses = ["Computer Science", "Electronics", "Mechanical Engineering", "Civil Engineering"];
+        careerPath = "engineering";
         break;
       case "Medical Path":
         careerOptions = ["Doctor", "Surgeon", "Medical Researcher", "Healthcare Administrator"];
         estimatedSalary = "₹8L - ₹40L";
         growthPotential = "Very High";
         suggestedCourses = ["MBBS", "BDS", "BHMS", "BAMS"];
+        careerPath = "medical";
         break;
       case "Law Path":
         careerOptions = ["Corporate Lawyer", "Criminal Lawyer", "Judge", "Legal Consultant"];
         estimatedSalary = "₹5L - ₹30L";
         growthPotential = "Good";
         suggestedCourses = ["LLB", "LLM", "Intellectual Property Law", "Corporate Law"];
+        careerPath = "law";
         break;
       default:
         careerOptions = ["Professional", "Manager", "Consultant", "Entrepreneur"];
         break;
     }
+    
+    // Get relevant entrance exams based on education level and career path
+    const eduLevel = assessment.educationLevel || "graduation";
+    const entranceExams = getEntranceExamsByEducationLevel(eduLevel);
+    const careerExams = getEntranceExamsByCareerPath(careerPath);
+    
+    // Find exams that match both education level and career path
+    const relevantExams = entranceExams.filter(exam => 
+      careerExams.some(careerExam => careerExam.id === exam.id)
+    );
+    
+    // Get college recommendations based on budget and career path
+    const budgetLevel = assessment.budget || "medium";
+    const collegeRecommendations = getCollegesByFilters(careerPath, budgetLevel);
+    
+    // Format entrance exam info
+    const entranceExamInfo = relevantExams.length > 0 
+      ? relevantExams.map(exam => `${exam.name}: ${exam.fullName} (${exam.minPercentileRequired}th percentile required)`).join(", ")
+      : "No specific entrance exams required";
+    
+    // Format college recommendations
+    const collegeInfo = collegeRecommendations.length > 0
+      ? collegeRecommendations.slice(0, 3).map(college => college.name).join(", ")
+      : "Explore colleges based on your location preference";
     
     // Create recommendation
     recommendations.push({
@@ -266,7 +406,12 @@ export async function getBasicRecommendations(assessment: CareerAssessment): Pro
       careerOptions,
       estimatedSalary,
       growthPotential,
-      suggestedCourses
+      suggestedCourses,
+      // Add entrance exam and college information
+      entranceExams: entranceExamInfo,
+      recommendedColleges: collegeInfo,
+      budgetCategory: budgetLevel,
+      timeToEmployment: eduLevel === "10th" || eduLevel === "12th" ? "6-18 months" : "1-3 years"
     });
   }
   
