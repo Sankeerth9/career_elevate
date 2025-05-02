@@ -15,7 +15,23 @@ i18n
     fallbackLng: "en",
     interpolation: {
       escapeValue: false // React already safes from XSS
+    },
+    react: {
+      useSuspense: false, // This helps with rendering translations
+      bindI18n: 'languageChanged loaded', // Listen to these events
+      bindI18nStore: 'added removed',
+      transEmptyNodeValue: '',
+      transSupportBasicHtmlNodes: true,
+      transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p', 'span'],
+      omitBoundRerender: false // Important: ensure re-renders on language change
     }
   });
+
+// Add debugging for language changes
+i18n.on('languageChanged', (lng) => {
+  console.log(`Language changed to: ${lng}`);
+  document.documentElement.lang = lng;
+  document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr'; // Handle RTL languages if needed
+});
 
 export default i18n;
