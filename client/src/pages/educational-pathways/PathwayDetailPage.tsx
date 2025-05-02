@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { EducationalPathway } from "@shared/schema";
+import { getCollegesByFilters, College } from "@/data/colleges";
 import {
   Card,
   CardContent,
