@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
 import { useForm } from "react-hook-form";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { educationLevels, careerAims, states, budgetRanges } from "@shared/schema";
 import EducationBasedRecommendations from "./EducationBasedRecommendations";
+import { useLocation, useRoute } from "wouter";
 
 import {
   Card,
@@ -80,6 +81,7 @@ export default function AIRecommendations() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [assessment, setAssessment] = useState<any>(null);
+  const [_, setLocation] = useLocation();
 
   // Define interests and skills options
   const interestOptions = [
@@ -122,31 +124,44 @@ export default function AIRecommendations() {
     },
   });
 
-  // Submit handler
+  // Add a useEffect to show redirect message
+  useEffect(() => {
+    setTimeout(() => {
+      toast({
+        title: "Recommendation System Improved",
+        description: "We've enhanced our system to directly show educational pathways and entrance exams based on your preferences.",
+      });
+    }, 500);
+  }, [toast]);
+
+  // Submit handler - now redirects to educational pathways
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest(
-        "POST",
-        "/api/test-ai-recommendation",
-        data
-      );
+      // Instead of calling AI endpoint, redirect to educational pathways with query parameters
+      toast({
+        title: "Finding Educational Pathways",
+        description: "Redirecting you to educational pathways that match your profile...",
+      });
       
-      const responseData = await response.json();
+      // Store form data in local storage for accessing on the pathways page
+      localStorage.setItem('userPreferences', JSON.stringify({
+        educationLevel: data.educationLevel,
+        budget: data.budget,
+        careerAim: data.careerAim,
+        state: data.state
+      }));
       
-      if (responseData && responseData.recommendations) {
-        setRecommendations(responseData.recommendations);
-        setAssessment(responseData.assessment);
-        toast({
-          title: "AI Recommendations Generated",
-          description: "Based on your profile, we've found career pathways that match your interests and skills.",
-        });
-      }
+      // Redirect to educational pathways
+      setTimeout(() => {
+        setLocation(`/educational-pathways?educationLevel=${data.educationLevel}&budget=${data.budget}`);
+      }, 1500);
+      
     } catch (error) {
-      console.error("Error generating recommendations:", error);
+      console.error("Error:", error);
       toast({
         title: "Error",
-        description: "Failed to generate career recommendations. Please try again later.",
+        description: "Failed to process your request. Please try again later.",
         variant: "destructive",
       });
     } finally {
