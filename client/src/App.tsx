@@ -13,6 +13,7 @@ const Login = lazy(() => import("@/pages/login"));
 const Register = lazy(() => import("@/pages/register"));
 const Payment = lazy(() => import("@/pages/payment"));
 const CareerAssessment = lazy(() => import("@/pages/career-assessment"));
+const AssessmentResults = lazy(() => import("@/pages/career-assessment/results/[id]"));
 const ExploreCareers = lazy(() => import("@/pages/explore-careers"));
 const EducationalPathways = lazy(() => import("@/pages/educational-pathways"));
 const JobListings = lazy(() => import("@/pages/job-listings"));
@@ -40,6 +41,7 @@ function Router() {
           <Route path="/register" component={Register} />
           <Route path="/payment" component={Payment} /> {/* Will handle auth check in component */}
           <Route path="/career-assessment" component={CareerAssessment} />
+          <Route path="/career-assessment/results/:id" component={AssessmentResults} />
           <Route path="/explore-careers" component={ExploreCareers} />
           <Route path="/educational-pathways/:id" component={EducationalPathways} />
           <Route path="/educational-pathways" component={EducationalPathways} />
