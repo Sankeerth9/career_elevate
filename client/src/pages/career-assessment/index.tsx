@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -97,7 +97,7 @@ export default function CareerAssessment() {
   const { t } = useTranslation();
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [_, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("step1");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -139,7 +139,7 @@ export default function CareerAssessment() {
           title: "Sign in required",
           description: "Please sign in or register to save your assessment",
         });
-        navigate("/login", { state: { from: { pathname: "/career-assessment" } } });
+        setLocation("/login");
         return;
       }
       
@@ -154,7 +154,7 @@ export default function CareerAssessment() {
       });
       
       // Navigate to results page
-      navigate(`/career-assessment/results/${assessment.id}`);
+      setLocation(`/career-assessment/results/${assessment.id}`);
     } catch (error) {
       console.error("Assessment submission failed:", error);
       toast({
