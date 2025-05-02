@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Route, Switch } from "wouter";
+import { Route, Switch, Router as WouterRouter } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -53,7 +53,11 @@ function Router() {
 }
 
 function App() {
-  return <Router />;
+  return (
+    <WouterRouter>
+      <Router />
+    </WouterRouter>
+  );
 }
 
 export default App;
