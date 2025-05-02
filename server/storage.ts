@@ -1,4 +1,6 @@
 import { users, type User, type InsertUser, careerAssessments, type CareerAssessment, type InsertCareerAssessment, educationalPathways, type EducationalPathway, type InsertEducationalPathway, payments, type Payment, type InsertPayment } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -27,6 +29,7 @@ export interface IStorage {
   updatePaymentStatus(id: number, status: string): Promise<Payment | undefined>;
 }
 
+// In-memory storage implementation (for reference only, using DatabaseStorage now)
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private careerAssessments: Map<number, CareerAssessment>;
@@ -205,4 +208,174 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser || undefined;
+  }
+
+  async createCareerAssessment(insertAssessment: InsertCareerAssessment): Promise<CareerAssessment> {
+    const [assessment] = await db
+      .insert(careerAssessments)
+      .values(insertAssessment)
+      .returning();
+    return assessment;
+  }
+  
+  async getCareerAssessmentsByUserId(userId: number): Promise<CareerAssessment[]> {
+    return await db
+      .select()
+      .from(careerAssessments)
+      .where(eq(careerAssessments.userId, userId));
+  }
+  
+  async getCareerAssessment(id: number): Promise<CareerAssessment | undefined> {
+    const [assessment] = await db
+      .select()
+      .from(careerAssessments)
+      .where(eq(careerAssessments.id, id));
+    return assessment || undefined;
+  }
+  
+  async getAllEducationalPathways(): Promise<EducationalPathway[]> {
+    return await db
+      .select()
+      .from(educationalPathways);
+  }
+  
+  async getEducationalPathwaysByEducationLevel(level: string): Promise<EducationalPathway[]> {
+    if (level === "all") {
+      return this.getAllEducationalPathways();
+    }
+    return await db
+      .select()
+      .from(educationalPathways)
+      .where(eq(educationalPathways.afterEducationLevel, level));
+  }
+  
+  async getEducationalPathway(id: number): Promise<EducationalPathway | undefined> {
+    const [pathway] = await db
+      .select()
+      .from(educationalPathways)
+      .where(eq(educationalPathways.id, id));
+    return pathway || undefined;
+  }
+  
+  async createEducationalPathway(insertPathway: InsertEducationalPathway): Promise<EducationalPathway> {
+    const [pathway] = await db
+      .insert(educationalPathways)
+      .values(insertPathway)
+      .returning();
+    return pathway;
+  }
+  
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [payment] = await db
+      .insert(payments)
+      .values(insertPayment)
+      .returning();
+    return payment;
+  }
+  
+  async getPaymentsByUserId(userId: number): Promise<Payment[]> {
+    return await db
+      .select()
+      .from(payments)
+      .where(eq(payments.userId, userId));
+  }
+  
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.id, id));
+    return payment || undefined;
+  }
+  
+  async updatePaymentStatus(id: number, status: string): Promise<Payment | undefined> {
+    const [updatedPayment] = await db
+      .update(payments)
+      .set({ status })
+      .where(eq(payments.id, id))
+      .returning();
+    return updatedPayment || undefined;
+  }
+
+  // Seed educational pathways if they don't exist yet
+  async seedEducationalPathwaysIfNeeded() {
+    const existingPathways = await this.getAllEducationalPathways();
+    
+    if (existingPathways.length === 0) {
+      const engineeringPathway: InsertEducationalPathway = {
+        title: "Engineering Path",
+        description: "After 12th (Science with PCM)",
+        afterEducationLevel: "12th",
+        entranceExams: ["JEE Main", "JEE Advanced", "EAMCET"],
+        topInstitutes: ["IITs", "NITs", "BITS", "State Universities"],
+        averageFees: "₹8L - ₹15L (full course)",
+        jobProspects: "High Demand",
+        growthRate: "+20%",
+        icon: "building"
+      };
+      
+      const medicalPathway: InsertEducationalPathway = {
+        title: "Medical Path",
+        description: "After 12th (Science with PCB)",
+        afterEducationLevel: "12th",
+        entranceExams: ["NEET-UG"],
+        topInstitutes: ["AIIMS", "CMC Vellore", "Govt Medical Colleges"],
+        averageFees: "₹25L - ₹80L (full course)",
+        jobProspects: "Very High Demand",
+        growthRate: "+28%",
+        icon: "heart"
+      };
+      
+      const lawPathway: InsertEducationalPathway = {
+        title: "Law Path",
+        description: "After 12th (Any Stream)",
+        afterEducationLevel: "12th",
+        entranceExams: ["CLAT", "LSAT", "AILET"],
+        topInstitutes: ["NLUs", "Symbiosis", "NALSAR"],
+        averageFees: "₹2.5L - ₹15L (full course)",
+        jobProspects: "Good Demand",
+        growthRate: "+15%",
+        icon: "scale"
+      };
+      
+      await this.createEducationalPathway(engineeringPathway);
+      await this.createEducationalPathway(medicalPathway);
+      await this.createEducationalPathway(lawPathway);
+    }
+  }
+}
+
+// Export a database storage instance
+export const storage = new DatabaseStorage();
