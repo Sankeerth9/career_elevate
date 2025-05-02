@@ -41,6 +41,7 @@ function Router() {
           <Route path="/payment" component={Payment} /> {/* Will handle auth check in component */}
           <Route path="/career-assessment" component={CareerAssessment} />
           <Route path="/explore-careers" component={ExploreCareers} />
+          <Route path="/educational-pathways/:id" component={EducationalPathways} />
           <Route path="/educational-pathways" component={EducationalPathways} />
           <Route path="/job-listings" component={JobListings} />
           <Route path="/career/:id" component={CareerDetails} />
