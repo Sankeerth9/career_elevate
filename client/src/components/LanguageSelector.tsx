@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,11 +16,24 @@ interface LanguageSelectorProps {
 export default function LanguageSelector({ className = "" }: LanguageSelectorProps) {
   const { language, changeLanguage, languageOptions } = useLanguage();
   const [open, setOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+
+  // Update local state when context language changes
+  useEffect(() => {
+    setSelectedLanguage(language);
+  }, [language]);
 
   // Find current language display name
   const currentLanguage = languageOptions.find(
-    (option) => option.code === language
+    (option) => option.code === selectedLanguage
   );
+
+  const handleLanguageChange = (langCode: string) => {
+    console.log(`LanguageSelector: changing to ${langCode}`);
+    changeLanguage(langCode as any);
+    setSelectedLanguage(langCode as any);
+    setOpen(false);
+  };
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -37,12 +50,9 @@ export default function LanguageSelector({ className = "" }: LanguageSelectorPro
         {languageOptions.map((option) => (
           <DropdownMenuItem
             key={option.code}
-            onClick={() => {
-              changeLanguage(option.code);
-              setOpen(false);
-            }}
+            onClick={() => handleLanguageChange(option.code)}
             className={`flex justify-between items-center ${
-              language === option.code ? "bg-primary-50 dark:bg-primary-900/20" : ""
+              selectedLanguage === option.code ? "bg-primary-50 dark:bg-primary-900/20" : ""
             }`}
           >
             <span>{option.name}</span>
