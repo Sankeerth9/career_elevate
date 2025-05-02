@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import {
   Select,
   SelectContent,
@@ -18,13 +18,13 @@ import {
 
 export default function FilterSection() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const [_, setLocation] = useLocation();
   
   const [filters, setFilters] = useState({
-    educationLevel: "",
-    state: "",
-    careerAim: "",
-    budget: ""
+    educationLevel: "any",
+    state: "any",
+    careerAim: "any",
+    budget: "any"
   });
   
   const handleFilterChange = (field: string, value: string) => {
@@ -35,11 +35,11 @@ export default function FilterSection() {
     // Convert filters to query params
     const queryParams = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) queryParams.append(key, value);
+      if (value && value !== "any") queryParams.append(key, value);
     });
     
     // Navigate to explore-careers with filters
-    navigate(`/explore-careers?${queryParams.toString()}`);
+    setLocation(`/explore-careers?${queryParams.toString()}`);
   };
 
   return (
@@ -59,7 +59,7 @@ export default function FilterSection() {
                 <SelectValue placeholder={t("home.filters.educationLevel")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="any">
                   {t("home.filters.educationLevel")}
                 </SelectItem>
                 {educationLevels.map((level) => (
@@ -84,7 +84,7 @@ export default function FilterSection() {
                 <SelectValue placeholder={t("home.filters.state")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="any">
                   {t("home.filters.state")}
                 </SelectItem>
                 {states.map((state) => (
@@ -109,7 +109,7 @@ export default function FilterSection() {
                 <SelectValue placeholder={t("home.filters.careerAim")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="any">
                   {t("home.filters.careerAim")}
                 </SelectItem>
                 {careerAims.map((aim) => (
@@ -134,7 +134,7 @@ export default function FilterSection() {
                 <SelectValue placeholder={t("home.filters.budget")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="any">
                   {t("home.filters.budget")}
                 </SelectItem>
                 {budgetRanges.map((range) => (

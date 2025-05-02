@@ -207,7 +207,7 @@ export default function AIRecommendations() {
                             </FormControl>
                             <SelectContent>
                               {educationLevels.map((level) => (
-                                <SelectItem key={level} value={level}>
+                                <SelectItem key={level} value={level || "default_value"}>
                                   {t(`educationLevels.${level}`)}
                                 </SelectItem>
                               ))}
@@ -235,7 +235,7 @@ export default function AIRecommendations() {
                             </FormControl>
                             <SelectContent>
                               {careerAims.map((aim) => (
-                                <SelectItem key={aim} value={aim}>
+                                <SelectItem key={aim} value={aim || "default_value"}>
                                   {t(`careerAims.${aim}`)}
                                 </SelectItem>
                               ))}
@@ -263,7 +263,7 @@ export default function AIRecommendations() {
                             </FormControl>
                             <SelectContent>
                               {states.map((state) => (
-                                <SelectItem key={state} value={state}>
+                                <SelectItem key={state} value={state || "default_value"}>
                                   {t(`states.${state}`)}
                                 </SelectItem>
                               ))}
@@ -291,7 +291,7 @@ export default function AIRecommendations() {
                             </FormControl>
                             <SelectContent>
                               {budgetRanges.map((range) => (
-                                <SelectItem key={range} value={range}>
+                                <SelectItem key={range} value={range || "default_value"}>
                                   {t(`budgetRanges.${range}`)}
                                 </SelectItem>
                               ))}
