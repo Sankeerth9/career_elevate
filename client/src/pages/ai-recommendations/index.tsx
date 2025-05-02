@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { educationLevels, careerAims, states, budgetRanges } from "@shared/schema";
+import EducationBasedRecommendations from "./EducationBasedRecommendations";
 
 import {
   Card,
@@ -655,37 +656,42 @@ export default function AIRecommendations() {
                 </Card>
               </div>
             ) : (
-              <Card className="h-full flex flex-col justify-center items-center py-12 px-4 text-center">
-                <Brain className="h-16 w-16 text-muted-foreground mb-4" />
-                <h2 className="text-2xl font-bold mb-2">AI Recommendations</h2>
-                <p className="text-muted-foreground max-w-md mb-6">
-                  Fill out your profile information to get personalized AI-powered career recommendations
-                  tailored to your skills, interests, and goals.
-                </p>
-                <div className="flex flex-col items-center space-y-4 max-w-md">
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                    <div className="text-left">
-                      <p className="font-medium">Career Pathway Matching</p>
-                      <p className="text-sm text-muted-foreground">Our AI analyzes your profile to identify the best career paths</p>
+              <div className="space-y-6">
+                <Card className="flex flex-col justify-center items-center py-12 px-4 text-center">
+                  <Brain className="h-16 w-16 text-muted-foreground mb-4" />
+                  <h2 className="text-2xl font-bold mb-2">AI Recommendations</h2>
+                  <p className="text-muted-foreground max-w-md mb-6">
+                    Fill out your profile information to get personalized AI-powered career recommendations
+                    tailored to your skills, interests, and goals.
+                  </p>
+                  <div className="flex flex-col items-center space-y-4 max-w-md">
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                      <div className="text-left">
+                        <p className="font-medium">Career Pathway Matching</p>
+                        <p className="text-sm text-muted-foreground">Our AI analyzes your profile to identify the best career paths</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                      <div className="text-left">
+                        <p className="font-medium">Educational Guidance</p>
+                        <p className="text-sm text-muted-foreground">Get recommendations for courses and institutions</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                      <div className="text-left">
+                        <p className="font-medium">Regional Job Market Insights</p>
+                        <p className="text-sm text-muted-foreground">Understand demand for your skills in different regions</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                    <div className="text-left">
-                      <p className="font-medium">Educational Guidance</p>
-                      <p className="text-sm text-muted-foreground">Get recommendations for courses and institutions</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
-                    <div className="text-left">
-                      <p className="font-medium">Regional Job Market Insights</p>
-                      <p className="text-sm text-muted-foreground">Understand demand for your skills in different regions</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+                </Card>
+                
+                {/* Education-based career recommendations */}
+                <EducationBasedRecommendations />
+              </div>
             )}
           </div>
         </div>
