@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { EducationalPathway } from "@shared/schema";
 import { getCollegesByFilters, College } from "@/data/colleges";
+import { getExamsByCareer, EntranceExam } from "@/data/entranceExams";
 import {
   Card,
   CardContent,
@@ -34,6 +35,50 @@ import {
 // Detail view component for pathway
 export default function PathwayDetailPage({ pathway }: { pathway: EducationalPathway }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [location] = useLocation();
+  const [budgetFilter, setBudgetFilter] = useState<string>("medium");
+  const [recommendedColleges, setRecommendedColleges] = useState<College[]>([]);
+  const [relevantExams, setRelevantExams] = useState<EntranceExam[]>([]);
+  
+  // Parse query parameters to get user budget preference
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const budget = params.get('budget');
+    
+    // If budget is provided in URL parameters, use it
+    if (budget) {
+      setBudgetFilter(budget);
+    } else {
+      // Check localStorage for user preferences
+      try {
+        const preferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
+        if (preferences.budget) {
+          setBudgetFilter(preferences.budget);
+        }
+      } catch (error) {
+        console.error('Error parsing user preferences:', error);
+      }
+    }
+  }, [location]);
+  
+  // Load recommended colleges and exams when pathway or budget changes
+  useEffect(() => {
+    if (pathway && pathway.title) {
+      // Extract career path from title
+      const careerPath = pathway.title.includes("Engineering") ? "Engineering" :
+                         pathway.title.includes("Medical") ? "Medical" :
+                         pathway.title.includes("Law") ? "Law" :
+                         pathway.title.includes("Business") ? "Business" : "Arts";
+      
+      // Get filtered colleges
+      const colleges = getCollegesByFilters(careerPath, budgetFilter);
+      setRecommendedColleges(colleges);
+      
+      // Get exams for this career path
+      const exams = getExamsByCareer(careerPath);
+      setRelevantExams(exams);
+    }
+  }, [pathway, budgetFilter]);
   
   // Get color based on pathway title
   const getPathwayColor = (title: string) => {
@@ -250,68 +295,305 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
             
             {/* Entrance Exams Tab */}
             <TabsContent value="exams">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Entrance Examinations</CardTitle>
-                  <CardDescription>Important competitive exams for this pathway</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {pathway.entranceExams?.map((exam, index) => (
-                      <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start`}>
-                        <div className={`p-2 rounded-full ${colors.bgLight} ${colors.text} mr-4`}>
-                          <BookOpen className="h-5 w-5" />
+              <div className="space-y-6">
+                {/* Budget filter for entrance exams */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Entrance Exams by Budget</CardTitle>
+                    <CardDescription>
+                      View entrance exams based on your budget preference. Current budget: <span className="font-semibold">
+                        {budgetFilter === "low" ? "Low (Up to ₹2 lakhs/year)" :
+                         budgetFilter === "medium" ? "Medium (₹2-3 lakhs/year)" :
+                         budgetFilter === "high" ? "High (₹3-5 lakhs/year)" :
+                         "Very High (₹5+ lakhs/year)"}
+                      </span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant={budgetFilter === "low" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("low")}
+                        className="flex-1"
+                      >
+                        Low
+                      </Button>
+                      <Button 
+                        variant={budgetFilter === "medium" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("medium")}
+                        className="flex-1"
+                      >
+                        Medium
+                      </Button>
+                      <Button 
+                        variant={budgetFilter === "high" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("high")}
+                        className="flex-1"
+                      >
+                        High
+                      </Button>
+                      <Button 
+                        variant={budgetFilter === "veryhigh" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("veryhigh")}
+                        className="flex-1"
+                      >
+                        Very High
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Exams required for colleges in this budget */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Required Entrance Exams</CardTitle>
+                    <CardDescription>
+                      Exams required for colleges in your budget range ({budgetFilter})
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* Get unique exams from the filtered colleges */}
+                      {recommendedColleges.length > 0 ? (
+                        [...new Set(recommendedColleges.flatMap(college => college.entranceExams))].map((examName, index) => {
+                          // Find matching exam details from the relevant exams
+                          const exam = relevantExams.find(e => e.name === examName || examName.includes(e.name));
+                          
+                          return (
+                            <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start`}>
+                              <div className={`p-2 rounded-full ${colors.bgLight} ${colors.text} mr-4`}>
+                                <BookOpen className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-lg">{examName}</h4>
+                                <p className="text-muted-foreground text-sm mt-1">
+                                  {exam ? exam.fullName : "Entrance examination"} for admission to top institutes
+                                </p>
+                                <div className="flex flex-wrap justify-between mt-2 gap-y-3">
+                                  <div className="flex items-center">
+                                    <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                                    <span className="text-xs text-muted-foreground">
+                                      {exam ? exam.examMonth : "Check official website"} annually
+                                    </span>
+                                  </div>
+                                  
+                                  {exam && (
+                                    <div className="flex items-center ml-8">
+                                      <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs">
+                                        {exam.examLevel.charAt(0).toUpperCase() + exam.examLevel.slice(1)} level
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {exam && (
+                                  <div className="mt-3 pt-3 border-t text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">Eligibility:</span>
+                                      <span>{exam.eligibility}</span>
+                                    </div>
+                                    <div className="flex justify-between mt-1">
+                                      <span className="text-muted-foreground">Application Period:</span>
+                                      <span>{exam.applicationMonth}</span>
+                                    </div>
+                                    
+                                    <div className="mt-3 text-right">
+                                      <Button size="sm" variant="outline" asChild>
+                                        <a href={exam.officialWebsite} target="_blank" rel="noopener noreferrer">
+                                          Official Website
+                                        </a>
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-muted-foreground">No colleges found in your budget range for this pathway.</p>
+                          <p className="mt-2">Try selecting a different budget option.</p>
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-lg">{exam}</h4>
-                          <p className="text-muted-foreground text-sm mt-1">
-                            National-level entrance examination for admission to top institutes
-                          </p>
-                          <div className="flex items-center mt-2">
-                            <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">
-                              {index % 2 === 0 ? "May-June" : "April-May"} annually
-                            </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Original exams from pathway */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Other Important Exams</CardTitle>
+                    <CardDescription>Other exams relevant for this pathway</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {pathway.entranceExams?.map((exam, index) => (
+                        <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start`}>
+                          <div className={`p-2 rounded-full ${colors.bgLight} ${colors.text} mr-4`}>
+                            <BookOpen className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-lg">{exam}</h4>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              National-level entrance examination for admission to top institutes
+                            </p>
+                            <div className="flex items-center mt-2">
+                              <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
+                                {index % 2 === 0 ? "May-June" : "April-May"} annually
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
             
             {/* Institutes Tab */}
             <TabsContent value="institutes">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Institutions</CardTitle>
-                  <CardDescription>Leading institutions offering this pathway</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {pathway.topInstitutes?.map((institute, index) => (
-                      <Card key={index} className={`border ${colors.border}`}>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base">{institute}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <div className="flex items-center mr-4">
-                              <School className="h-3 w-3 mr-1 opacity-70" />
-                              <span>Established {1950 + (index * 5)}</span>
+              <div className="space-y-6">
+                {/* Budget filter selector */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Institutions by Budget</CardTitle>
+                    <CardDescription>
+                      View institutions based on your budget preference. Current budget: <span className="font-semibold">
+                        {budgetFilter === "low" ? "Low (Up to ₹2 lakhs/year)" :
+                         budgetFilter === "medium" ? "Medium (₹2-3 lakhs/year)" :
+                         budgetFilter === "high" ? "High (₹3-5 lakhs/year)" :
+                         "Very High (₹5+ lakhs/year)"}
+                      </span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant={budgetFilter === "low" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("low")}
+                        className="flex-1"
+                      >
+                        Low
+                      </Button>
+                      <Button 
+                        variant={budgetFilter === "medium" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("medium")}
+                        className="flex-1"
+                      >
+                        Medium
+                      </Button>
+                      <Button 
+                        variant={budgetFilter === "high" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("high")}
+                        className="flex-1"
+                      >
+                        High
+                      </Button>
+                      <Button 
+                        variant={budgetFilter === "veryhigh" ? "default" : "outline"} 
+                        onClick={() => setBudgetFilter("veryhigh")}
+                        className="flex-1"
+                      >
+                        Very High
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Budget-based recommendations */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recommended Institutions</CardTitle>
+                    <CardDescription>
+                      Colleges and universities matching your budget ({budgetFilter}) for {pathway.title}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {recommendedColleges.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {recommendedColleges.map((college) => (
+                          <Card key={college.id} className={`border ${colors.border}`}>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base">{college.name}</CardTitle>
+                              <CardDescription className="text-xs flex items-center mt-1">
+                                <span className="inline-block w-2 h-2 rounded-full mr-1 bg-gray-400"></span>
+                                {college.location}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-muted-foreground">Type:</span>
+                                  <span className="font-medium capitalize">{college.type}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-muted-foreground">Fees:</span>
+                                  <span className="font-medium">{college.feesRange}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-muted-foreground">Entrance Exams:</span>
+                                  <span className="font-medium">{college.entranceExams.join(", ")}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-muted-foreground">Ranking:</span>
+                                  <span className="font-medium">#{college.ranking} in category</span>
+                                </div>
+                                
+                                <div className="pt-2 mt-2 border-t">
+                                  <Button variant="outline" size="sm" className="w-full" asChild>
+                                    <a href={college.websiteUrl} target="_blank" rel="noopener noreferrer">
+                                      Visit Website
+                                    </a>
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No institutions found matching your budget for this pathway.</p>
+                        <p className="mt-2">Try selecting a different budget range.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Original institutions from pathway */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Other Top Institutions</CardTitle>
+                    <CardDescription>Other leading institutions offering this pathway</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {pathway.topInstitutes?.map((institute, index) => (
+                        <Card key={index} className={`border ${colors.border}`}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base">{institute}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <div className="flex items-center mr-4">
+                                <School className="h-3 w-3 mr-1 opacity-70" />
+                                <span>Established {1950 + (index * 5)}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <TrendingUp className="h-3 w-3 mr-1 opacity-70" />
+                                <span>Rank #{index + 1} in India</span>
+                              </div>
                             </div>
-                            <div className="flex items-center">
-                              <TrendingUp className="h-3 w-3 mr-1 opacity-70" />
-                              <span>Rank #{index + 1} in India</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
             
             {/* Career Prospects Tab */}
