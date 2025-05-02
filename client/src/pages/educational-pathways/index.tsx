@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { getEducationalPathways } from "@/lib/api";
 import { getExamsByCareer } from "@/data/entranceExams";
-import { educationLevels } from "@shared/schema";
+import { educationLevels, EducationalPathway } from "@shared/schema";
 import {
   Card,
   CardContent,
@@ -57,20 +57,20 @@ export default function EducationalPathways() {
   const [activeTab, setActiveTab] = useState("pathways");
 
   // Fetch educational pathways
-  const { data: pathways, isLoading } = useQuery({
+  const { data: pathways, isLoading } = useQuery<EducationalPathway[]>({
     queryKey: ['/api/pathways', educationLevel],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Filter pathways by search query
-  const filteredPathways = pathways?.filter(pathway => {
+  const filteredPathways = pathways?.filter((pathway: EducationalPathway) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
       pathway.title.toLowerCase().includes(query) ||
       pathway.description.toLowerCase().includes(query) ||
-      pathway.entranceExams?.some(exam => exam.toLowerCase().includes(query)) ||
-      pathway.topInstitutes?.some(institute => institute.toLowerCase().includes(query))
+      pathway.entranceExams?.some((exam: string) => exam.toLowerCase().includes(query)) ||
+      pathway.topInstitutes?.some((institute: string) => institute.toLowerCase().includes(query))
     );
   });
 
@@ -169,7 +169,7 @@ export default function EducationalPathways() {
               </div>
             ) : filteredPathways && filteredPathways.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPathways.map((pathway) => (
+                {filteredPathways.map((pathway: EducationalPathway) => (
                   <Card key={pathway.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <div className="flex items-center space-x-2">

@@ -144,7 +144,7 @@ export default function Payment() {
         description: `Your ${selectedPackageDetails?.title} package has been activated.`,
       });
       
-      navigate("/");
+      setLocation("/");
     } catch (error) {
       console.error("Payment failed:", error);
       toast({
