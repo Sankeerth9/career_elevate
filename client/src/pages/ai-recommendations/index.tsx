@@ -572,7 +572,7 @@ export default function AIRecommendations() {
                               </div>
                             )}
 
-                            {recommendation.strengthsMatchScore && (
+                            {recommendation.strengthsMatchScore && typeof recommendation.strengthsMatchScore === 'number' && (
                               <div>
                                 <h4 className="text-sm font-medium flex items-center mb-1">
                                   <Star className="mr-2 h-4 w-4 text-yellow-500" />
@@ -590,7 +590,7 @@ export default function AIRecommendations() {
                               </div>
                             )}
 
-                            {recommendation.regionalDemand && (
+                            {recommendation.regionalDemand && Array.isArray(recommendation.regionalDemand) && (
                               <div>
                                 <h4 className="text-sm font-medium flex items-center mb-2">
                                   <MapPin className="mr-2 h-4 w-4 text-red-500" />
