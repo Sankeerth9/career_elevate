@@ -324,33 +324,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         entranceRank: "good"
       };
       
-      try {
-        // Try to get AI-powered recommendations
-        const recommendations = await getCareerRecommendations(sampleAssessment);
-        
-        res.json({
-          assessment: sampleAssessment,
-          recommendations,
-          source: "ai" // Indicate the source of recommendations
-        });
-      } catch (aiError) {
-        console.error("AI recommendation error, using fallback:", aiError);
-        
-        // Get recommendations from the basic engine as fallback
-        const { getBasicRecommendations } = require('./services/careerRecommendation');
-        const recommendations = await getBasicRecommendations(sampleAssessment);
-        
-        res.json({
-          assessment: sampleAssessment,
-          recommendations,
-          source: "fallback" // Indicate fallback recommendations
-        });
-      }
+      // Skip OpenAI call and directly use basic recommendations
+      // since we know OpenAI has quota exceeded error
+      console.log("Using basic recommendations directly");
+      const { getBasicRecommendations } = require('./services/careerRecommendation');
+      const recommendations = await getBasicRecommendations(sampleAssessment);
+      
+      res.json({
+        assessment: sampleAssessment,
+        recommendations,
+        source: "basic" // Indicate basic recommendations
+      });
     } catch (error) {
       console.error("Error generating recommendations:", error);
       res.status(500).json({
         message: "Failed to generate recommendations",
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });
