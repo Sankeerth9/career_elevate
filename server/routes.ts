@@ -320,21 +320,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: null,
         createdAt: new Date(),
         results: null,
-        willingToRelocate: true,
+        willingToRelocate: Boolean(req.body.willingToRelocate) || true,
         entranceRank: "good"
       };
       
-      // Get AI-powered recommendations
-      const recommendations = await getCareerRecommendations(sampleAssessment);
-      
-      res.json({
-        assessment: sampleAssessment,
-        recommendations
-      });
+      try {
+        // Try to get AI-powered recommendations
+        const recommendations = await getCareerRecommendations(sampleAssessment);
+        
+        res.json({
+          assessment: sampleAssessment,
+          recommendations,
+          source: "ai" // Indicate the source of recommendations
+        });
+      } catch (aiError) {
+        console.error("AI recommendation error, using fallback:", aiError);
+        
+        // Get recommendations from the basic engine as fallback
+        const { getBasicRecommendations } = require('./services/careerRecommendation');
+        const recommendations = await getBasicRecommendations(sampleAssessment);
+        
+        res.json({
+          assessment: sampleAssessment,
+          recommendations,
+          source: "fallback" // Indicate fallback recommendations
+        });
+      }
     } catch (error) {
-      console.error("Error generating AI recommendations:", error);
+      console.error("Error generating recommendations:", error);
       res.status(500).json({
-        message: "Failed to generate AI recommendations",
+        message: "Failed to generate recommendations",
         error: error.message
       });
     }
