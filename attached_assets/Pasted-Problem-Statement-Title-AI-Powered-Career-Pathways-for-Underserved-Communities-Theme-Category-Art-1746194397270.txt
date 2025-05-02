@@ -1,0 +1,124 @@
+Problem Statement Title: AI-Powered Career Pathways for Underserved Communities
+Theme/Category: Artificial Intelligence & Machine Learning
+
+Context:
+ Millions of individuals from underserved or underrepresented communities lack access to adequate career guidance, skill-building resources, and relevant job market insights. Traditional career counseling methods are limited, often generic, and do not reflect local economic conditions or educational constraints. As job markets evolve rapidly with the digital economy, there's a growing need for tools that can guide learners through dynamic and personalized upskilling journeys based on their unique contexts.
+
+Problem or Challenge:
+ Develop a scalable, AI-driven platform that delivers personalized career pathway recommendations for individuals based on their background, education level, and regional job market trends. The system should intelligently map a user's current skill set to viable career opportunities, recommend targeted learning resources and certifications, and provide real-time job openings in their locality or desired region.
+
+Objective:
+ Build a multilingual, web/app-based platform that leverages AI to offer customized career roadmaps, localized job listings, and relevant skill development resources tailored to individual users.
+
+Constraints:
+Must support at least 3–5 regional languages to maximize inclusivity.
+Must integrate with local job market APIs/databases (e.g., government employment exchanges, LinkedIn, or Indeed).
+Should function with limited internet access or on low-end devices to accommodate underserved areas.
+Recommendations must consider both online and offline (in-person) opportunities for training or employment.
+
+Industry Relevance:
+Promotes equitable access to economic mobility
+Supports workforce transformation in emerging economies
+Aligns with goals of education technology, HR tech, and skill development programs
+
+Expected Deliverables:
+AI-based career recommendation engine
+Integrated job listing feed with filters for location, skill level, and industry
+Learning/certification pathway suggestion module
+Responsive multilingual web or mobile application prototype
+Analytics dashboard showing usage, success rate, and user feedback
+
+1. Career Packages Based on Educational Level
+After 10th Grade: Polytechnic, Intermediate with career guidance (e.g., MPC for engineering, BiPC for medicine).
+
+After 12th Grade: Degrees (Engineering, MBBS, Law, Commerce, B.Sc, Arts), UPSC foundation, Sports/Esports coaching.
+
+After B.Tech: Specializations (M.Tech, MBA, UPSC/State PSC, GATE, GRE, etc.)
+
+2. Degree/Career Paths with Entrance Tests and Profitability
+Engineering: JEE, EAMCET – Show top colleges (IITs, NITs, state universities), fees, job scope.
+
+Medical: NEET – MBBS, BDS, BHMS, BAMS with college options and average return (Govt/Private).
+
+Law: CLAT, LSAT – Show colleges like NLU, Symbiosis, DU Law.
+
+UPSC/Civil Services: Show coaching options, UPSC paths, cost, ROI (return on investment).
+
+Commerce/CA/CS: CA foundation, CSEET, B.Com, etc.
+
+Esports/Sports: Physical training academies, certification paths, industry growth insights.
+
+Other Vocational/Arts: Fashion, Design, Music, Teaching, etc.
+
+3. Entrance Test Recommendation
+Based on chosen career path and educational level.
+
+Include test dates, application links, syllabus outlines.
+
+4. Fee Calculation
+Based on:
+
+Career path (e.g., NEET coaching vs. Engineering).
+
+Package level (10th/12th/B.Tech).
+
+Type of college (government, private, abroad).
+
+Show estimated costs with EMI/scholarship options.
+
+5. Profitability & Scope Insights
+For each career:
+
+Job demand
+
+Average starting salary
+
+Growth opportunities
+
+Work locations (India/Abroad)
+
+🌐 Multilingual Support
+Add a language selector dropdown with:
+
+Telugu
+
+Tamil
+
+Hindi
+
+Kannada
+
+Malayalam
+
+Bengali
+
+Marathi
+
+English (default)
+
+All content should dynamically translate based on selection using stored translations or an API like Google Translate (if live).
+
+🏫 Recommendations Engine
+Use filters:
+
+State
+
+Career Aim
+
+Budget
+
+Entrance Rank (optional)
+
+Willingness to relocate
+
+And show:
+
+Top Colleges
+
+Coaching Centres
+
+Online Resources
+
+Admission Deadlines
+
+create a login page payment page
