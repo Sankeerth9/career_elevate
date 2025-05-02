@@ -14,7 +14,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(
     session({
-      cookie: { maxAge: 86400000 },
+      cookie: { 
+        maxAge: 86400000, // 24 hours
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+      },
       store: new SessionStore({
         checkPeriod: 86400000, // prune expired entries every 24h
       }),

@@ -34,11 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        const user = await apiRequest<User>("/api/auth/me");
-        setUser(user);
+        const user = await apiRequest<User>("/api/auth/me", {
+          credentials: 'include' // Important for cookie-based sessions
+        });
+        
+        if (user && user.id) {
+          setUser(user);
+          console.log("User authenticated:", user.username);
+        }
       } catch (error) {
         // User is not authenticated, but that's okay
         console.log("User not authenticated");
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -53,7 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       const user = await apiRequest<User>("/api/auth/login", {
         method: "POST",
-        body: { username, password }
+        body: { username, password },
+        credentials: 'include' // Important for cookie-based sessions
       });
       
       setUser(user);
@@ -80,7 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       const user = await apiRequest<User>("/api/auth/register", {
         method: "POST",
-        body: userData
+        body: userData,
+        credentials: 'include' // Important for cookie-based sessions
       });
       
       setUser(user);
@@ -106,7 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       await apiRequest<void>("/api/auth/logout", { 
-        method: "POST" 
+        method: "POST",
+        credentials: 'include' // Important for cookie-based sessions
       });
       
       setUser(null);
