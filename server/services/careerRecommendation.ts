@@ -64,14 +64,142 @@ function convertAiRecommendationsToStandard(aiRecommendations: AiCareerRecommend
 }
 
 /**
- * Basic recommendation engine as fallback if AI fails
+ * Creates generic career recommendations based on education level
+ * Used as a fallback when no pathways exist in the database
  */
-async function getBasicRecommendations(assessment: CareerAssessment): Promise<Recommendation[]> {
+function createGenericRecommendations(assessment: CareerAssessment): Recommendation[] {
+  const recommendations: Recommendation[] = [];
+  
+  // Default fields by education level
+  const fields: Record<string, { id: number, title: string, careers: string[], courses: string[], salary: string, growth: string }[]> = {
+    "10th": [
+      {
+        id: 101,
+        title: "Technical Trades",
+        careers: ["Electrician", "Plumber", "HVAC Technician", "Automotive Mechanic"],
+        courses: ["ITI Certificate", "Technical Diploma", "Apprenticeship Programs"],
+        salary: "₹1.8L - ₹4L",
+        growth: "Steady"
+      },
+      {
+        id: 102,
+        title: "Service Industry",
+        careers: ["Retail Associate", "Customer Service Representative", "Hospitality Staff"],
+        courses: ["Short-term Certificate Programs", "On-the-job Training"],
+        salary: "₹1.5L - ₹3L",
+        growth: "Moderate"
+      }
+    ],
+    "12th": [
+      {
+        id: 201,
+        title: "Technical Education",
+        careers: ["Technician", "Lab Assistant", "Computer Operator", "Junior Engineer"],
+        courses: ["Polytechnic Diploma", "Technical Certificate", "Associate Degree"],
+        salary: "₹2.5L - ₹6L",
+        growth: "Good"
+      },
+      {
+        id: 202,
+        title: "Administrative Work",
+        careers: ["Office Assistant", "Data Entry Specialist", "Bank Clerk", "Administrative Support"],
+        courses: ["BBA", "B.Com", "Certificate in Office Management"],
+        salary: "₹2L - ₹5L",
+        growth: "Stable"
+      }
+    ],
+    "graduation": [
+      {
+        id: 301,
+        title: "Professional Services",
+        careers: ["Business Analyst", "HR Professional", "Marketing Associate", "Financial Advisor"],
+        courses: ["MBA", "Specialized Certifications", "Professional Development Courses"],
+        salary: "₹4L - ₹12L",
+        growth: "High"
+      },
+      {
+        id: 302,
+        title: "Technology",
+        careers: ["Software Developer", "Network Administrator", "IT Support Specialist", "Web Developer"],
+        courses: ["Computer Science", "IT Certifications", "Coding Bootcamps"],
+        salary: "₹3.5L - ₹18L",
+        growth: "Very High"
+      }
+    ],
+    "post_graduation": [
+      {
+        id: 401,
+        title: "Management & Consulting",
+        careers: ["Management Consultant", "Project Manager", "Strategy Advisor", "Business Development Manager"],
+        courses: ["Executive MBA", "Leadership Development", "Project Management Professional"],
+        salary: "₹8L - ₹25L",
+        growth: "Excellent"
+      },
+      {
+        id: 402,
+        title: "Research & Development",
+        careers: ["Research Scientist", "Product Developer", "Academic Researcher", "R&D Specialist"],
+        courses: ["PhD", "Specialized Research Programs", "Advanced Technical Training"],
+        salary: "₹6L - ₹20L",
+        growth: "High"
+      }
+    ]
+  };
+  
+  // Get fields for the selected education level or default to graduation
+  const eduLevel = assessment.educationLevel || "graduation";
+  const relevantFields = fields[eduLevel] || fields["graduation"];
+  
+  // Create a recommendation for each field
+  for (const field of relevantFields) {
+    let score = 70;
+    let reason = `Based on your ${eduLevel} education level`;
+    
+    // Adjust score based on career aim if available
+    if (assessment.careerAim) {
+      if (field.title.toLowerCase().includes(assessment.careerAim.toLowerCase())) {
+        score += 15;
+        reason += ` and interest in ${assessment.careerAim}`;
+      }
+    }
+    
+    // Adjust for interests if available
+    if (assessment.interests && assessment.interests.length > 0) {
+      score += 8;
+      reason += ` with consideration for your personal interests`;
+    }
+    
+    recommendations.push({
+      pathwayId: field.id,
+      score: score,
+      reason: reason,
+      careerOptions: field.careers,
+      estimatedSalary: field.salary,
+      growthPotential: field.growth,
+      suggestedCourses: field.courses,
+      timeToEmployment: eduLevel === "10th" || eduLevel === "12th" ? "6-18 months" : "1-3 years"
+    });
+  }
+  
+  // Sort by score
+  recommendations.sort((a, b) => b.score - a.score);
+  
+  return recommendations;
+}
+
+export async function getBasicRecommendations(assessment: CareerAssessment): Promise<Recommendation[]> {
   // Get all educational pathways
   const allPathways = await storage.getAllEducationalPathways();
   
   // Create recommendations based on the assessment data
   const recommendations: Recommendation[] = [];
+  
+  // Ensure we have pathways to work with
+  if (!allPathways || allPathways.length === 0) {
+    // If no pathways exist, create generic ones based on common career fields
+    const genericRecommendations = createGenericRecommendations(assessment);
+    return genericRecommendations;
+  }
   
   // Basic matching algorithm
   for (const pathway of allPathways) {
@@ -87,10 +215,16 @@ async function getBasicRecommendations(assessment: CareerAssessment): Promise<Re
     
     // Adjust score based on career aim
     if (assessment.careerAim) {
-      if (pathway.title.toLowerCase().includes(assessment.careerAim.toLowerCase())) {
+      if (pathway.title && pathway.title.toLowerCase().includes(assessment.careerAim.toLowerCase())) {
         score += 25;
         reason += " and career aim";
       }
+    }
+    
+    // Adjust score based on interests if present
+    if (assessment.interests && assessment.interests.length > 0) {
+      score += 10;
+      reason += " and personal interests";
     }
     
     // Sample career options based on pathway
