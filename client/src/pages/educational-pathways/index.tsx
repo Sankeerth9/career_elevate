@@ -50,7 +50,15 @@ import {
   ExternalLink,
   AlertCircle,
   School,
-  DollarSign
+  DollarSign,
+  Laptop,
+  BookOpen as Book,
+  Palette,
+  Hammer,
+  Leaf,
+  Truck,
+  Wrench,
+  HardHat
 } from "lucide-react";
 
 export default function EducationalPathways() {
@@ -97,14 +105,33 @@ export default function EducationalPathways() {
 
   // Get icon based on pathway title
   const getPathwayIcon = (title: string, icon?: string | null) => {
+    // Use icon if provided
     if (icon === "building") return <Building className="h-5 w-5" />;
     if (icon === "heart") return <Heart className="h-5 w-5" />;
     if (icon === "scale") return <Scale className="h-5 w-5" />;
+    if (icon === "briefcase") return <Briefcase className="h-5 w-5" />;
+    if (icon === "laptop") return <Laptop className="h-5 w-5" />;
+    if (icon === "book") return <Book className="h-5 w-5" />;
+    if (icon === "palette") return <Palette className="h-5 w-5" />;
+    if (icon === "hammer") return <Hammer className="h-5 w-5" />;
+    if (icon === "leaf") return <Leaf className="h-5 w-5" />;
+    if (icon === "truck") return <Truck className="h-5 w-5" />;
+    if (icon === "wrench") return <Wrench className="h-5 w-5" />;
+    if (icon === "hardhat") return <HardHat className="h-5 w-5" />;
     
-    if (title.includes("Engineering")) return <Building className="h-5 w-5" />;
-    if (title.includes("Medical")) return <Heart className="h-5 w-5" />;
-    if (title.includes("Law")) return <Scale className="h-5 w-5" />;
-    if (title.includes("Commerce") || title.includes("MBA")) return <Briefcase className="h-5 w-5" />;
+    // Fallback based on title if icon not provided
+    if (title.includes("Engineering") || title.includes("Manufacturing")) return <Building className="h-5 w-5" />;
+    if (title.includes("Healthcare") || title.includes("Medical") || title.includes("Social")) return <Heart className="h-5 w-5" />;
+    if (title.includes("Law") || title.includes("Public Safety") || title.includes("Government")) return <Scale className="h-5 w-5" />;
+    if (title.includes("Business") || title.includes("Finance") || title.includes("Commerce") || title.includes("Administration")) return <Briefcase className="h-5 w-5" />;
+    if (title.includes("Information Technology") || title.includes("Computer")) return <Laptop className="h-5 w-5" />;
+    if (title.includes("Education") || title.includes("Training")) return <Book className="h-5 w-5" />;
+    if (title.includes("Arts") || title.includes("Design") || title.includes("Media")) return <Palette className="h-5 w-5" />;
+    if (title.includes("Skilled Trades") || title.includes("Construction")) return <Hammer className="h-5 w-5" />;
+    if (title.includes("Agriculture") || title.includes("Food") || title.includes("Natural Resources")) return <Leaf className="h-5 w-5" />;
+    if (title.includes("Transportation") || title.includes("Logistics")) return <Truck className="h-5 w-5" />;
+    
+    // Default icon
     return <GraduationCap className="h-5 w-5" />;
   };
 

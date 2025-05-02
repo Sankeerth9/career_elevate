@@ -378,10 +378,10 @@ export class DatabaseStorage implements IStorage {
     
     if (existingPathways.length === 0) {
       const engineeringPathway: InsertEducationalPathway = {
-        title: "Engineering Path",
-        description: "After 12th (Science with PCM)",
+        title: "Engineering & Manufacturing",
+        description: "Mechanical Engineer, Electrical Engineer, Civil Engineer, Industrial Designer, CNC Machinist",
         afterEducationLevel: "12th",
-        entranceExams: ["JEE Main", "JEE Advanced", "EAMCET"],
+        entranceExams: ["JEE Main", "JEE Advanced", "EAMCET", "BITSAT"],
         topInstitutes: ["IITs", "NITs", "BITS", "State Universities"],
         averageFees: "₹8L - ₹15L (full course)",
         jobProspects: "High Demand",
@@ -390,11 +390,11 @@ export class DatabaseStorage implements IStorage {
       };
       
       const medicalPathway: InsertEducationalPathway = {
-        title: "Medical Path",
-        description: "After 12th (Science with PCB)",
+        title: "Healthcare & Social Services",
+        description: "Nurse, Physician Assistant, Pharmacist, Medical Technician, Social Worker, Mental Health Counselor",
         afterEducationLevel: "12th",
-        entranceExams: ["NEET-UG"],
-        topInstitutes: ["AIIMS", "CMC Vellore", "Govt Medical Colleges"],
+        entranceExams: ["NEET-UG", "AIIMS", "JIPMER"],
+        topInstitutes: ["AIIMS", "CMC Vellore", "Govt Medical Colleges", "NIMHANS"],
         averageFees: "₹25L - ₹80L (full course)",
         jobProspects: "Very High Demand",
         growthRate: "+28%",
@@ -402,8 +402,8 @@ export class DatabaseStorage implements IStorage {
       };
       
       const lawPathway: InsertEducationalPathway = {
-        title: "Law Path",
-        description: "After 12th (Any Stream)",
+        title: "Law, Public Safety & Government",
+        description: "Lawyer, Police Officer, Firefighter, Paralegal, Legal Assistant, Public Administrator",
         afterEducationLevel: "12th",
         entranceExams: ["CLAT", "LSAT", "AILET"],
         topInstitutes: ["NLUs", "Symbiosis", "NALSAR"],
@@ -413,9 +413,100 @@ export class DatabaseStorage implements IStorage {
         icon: "scale"
       };
       
+      const itPathway: InsertEducationalPathway = {
+        title: "Information Technology & Computer Science",
+        description: "Software Developer, IT Support Specialist, Cybersecurity Analyst, Data Scientist, Web Developer",
+        afterEducationLevel: "12th",
+        entranceExams: ["JEE Main", "BITSAT", "COMEDK"],
+        topInstitutes: ["IITs", "NITs", "IIIT", "BITS"],
+        averageFees: "₹6L - ₹16L (full course)",
+        jobProspects: "Very High Demand",
+        growthRate: "+25%",
+        icon: "laptop"
+      };
+      
+      const businessPathway: InsertEducationalPathway = {
+        title: "Business, Finance & Administration",
+        description: "Accountant, Financial Analyst, Human Resources Specialist, Marketing Coordinator, Administrative Assistant",
+        afterEducationLevel: "12th",
+        entranceExams: ["CAT", "XAT", "MAT", "CMAT"],
+        topInstitutes: ["IIMs", "XLRI", "FMS Delhi", "SPJIMR"],
+        averageFees: "₹5L - ₹25L (full course)",
+        jobProspects: "High Demand",
+        growthRate: "+18%",
+        icon: "briefcase"
+      };
+      
+      const educationPathway: InsertEducationalPathway = {
+        title: "Education & Training",
+        description: "Teacher, Instructional Designer, Corporate Trainer, Educational Consultant, Special Education Specialist",
+        afterEducationLevel: "graduation",
+        entranceExams: ["B.Ed Entrance", "CTET", "NET"],
+        topInstitutes: ["NCERT", "Regional Colleges of Education", "Delhi University"],
+        averageFees: "₹1L - ₹5L (full course)",
+        jobProspects: "Steady Demand",
+        growthRate: "+12%",
+        icon: "book"
+      };
+      
+      const artsPathway: InsertEducationalPathway = {
+        title: "Arts, Design & Media",
+        description: "Graphic Designer, Animator, Content Creator, Photographer, Art Director",
+        afterEducationLevel: "12th",
+        entranceExams: ["NIFT", "NID", "UCEED", "CEED"],
+        topInstitutes: ["NID", "NIFT", "FTII", "FMS Delhi"],
+        averageFees: "₹3L - ₹15L (full course)",
+        jobProspects: "Growing Demand",
+        growthRate: "+22%",
+        icon: "palette"
+      };
+      
+      const tradesPathway: InsertEducationalPathway = {
+        title: "Skilled Trades & Construction",
+        description: "Electrician, Plumber, Carpenter, HVAC Technician, Welder",
+        afterEducationLevel: "10th",
+        entranceExams: ["ITI Admission", "Trade Tests"],
+        topInstitutes: ["ITIs", "Polytechnics", "NTTF"],
+        averageFees: "₹50K - ₹3L (full course)",
+        jobProspects: "High Demand",
+        growthRate: "+16%",
+        icon: "tool"
+      };
+      
+      const agriculturePathway: InsertEducationalPathway = {
+        title: "Agriculture, Food & Natural Resources",
+        description: "Agricultural Technician, Food Scientist, Environmental Specialist, Horticulturist, Conservation Officer",
+        afterEducationLevel: "12th",
+        entranceExams: ["ICAR AIEEA", "IARI", "JET"],
+        topInstitutes: ["IARI", "GBPUAT", "PAU", "TNAU"],
+        averageFees: "₹1.5L - ₹8L (full course)",
+        jobProspects: "Growing Demand",
+        growthRate: "+14%",
+        icon: "leaf"
+      };
+      
+      const transportPathway: InsertEducationalPathway = {
+        title: "Transportation & Logistics",
+        description: "Truck Driver, Supply Chain Analyst, Logistics Coordinator, Aircraft Mechanic, Warehouse Manager",
+        afterEducationLevel: "12th",
+        entranceExams: ["Logistics Certification Exams", "Aviation Tests"],
+        topInstitutes: ["IMU", "IIFT", "FHRAI", "Aviation Academies"],
+        averageFees: "₹1L - ₹10L (full course)",
+        jobProspects: "Steady Demand",
+        growthRate: "+13%",
+        icon: "truck"
+      };
+      
       await this.createEducationalPathway(engineeringPathway);
       await this.createEducationalPathway(medicalPathway);
       await this.createEducationalPathway(lawPathway);
+      await this.createEducationalPathway(itPathway);
+      await this.createEducationalPathway(businessPathway);
+      await this.createEducationalPathway(educationPathway);
+      await this.createEducationalPathway(artsPathway);
+      await this.createEducationalPathway(tradesPathway);
+      await this.createEducationalPathway(agriculturePathway);
+      await this.createEducationalPathway(transportPathway);
     }
   }
 }
