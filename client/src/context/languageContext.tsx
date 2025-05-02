@@ -1,23 +1,28 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { languages } from "@shared/schema";
 import i18n from "../i18n";
+import { useTranslation } from "react-i18next";
 
+// Simple language type from shared schema
 type Language = (typeof languages)[number];
 
+// Language option with display information
 interface LanguageOption {
   code: Language;
   name: string;
   nativeName: string;
-  flag: string; // Added flag emoji for better visual representation
+  flag: string;
 }
 
+// Define language context type
 interface LanguageContextType {
-  language: Language;
-  changeLanguage: (lang: Language) => void;
+  currentLanguage: Language;
+  setLanguage: (lang: Language) => void;
   languageOptions: LanguageOption[];
 }
 
-const languageOptions: LanguageOption[] = [
+// Available language options with flags
+export const languageOptions: LanguageOption[] = [
   { code: "en", name: "English", nativeName: "English", flag: "🇬🇧" },
   { code: "hi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳" },
   { code: "te", name: "Telugu", nativeName: "తెలుగు", flag: "🇮🇳" },
@@ -28,81 +33,61 @@ const languageOptions: LanguageOption[] = [
   { code: "mr", name: "Marathi", nativeName: "मराठी", flag: "🇮🇳" },
 ];
 
-// Create the context with default values to avoid undefined checks
-const defaultContextValue: LanguageContextType = {
-  language: "en",
-  changeLanguage: () => {},
-  languageOptions: languageOptions
-};
+// Create language context
+const LanguageContext = createContext<LanguageContextType | null>(null);
 
-const LanguageContext = createContext<LanguageContextType>(defaultContextValue);
-
+// Language provider component
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage or browser language
-  const [language, setLanguage] = useState<Language>(() => {
-    const savedLanguage = localStorage.getItem("language") as Language;
-    if (savedLanguage && languages.includes(savedLanguage as Language)) {
-      return savedLanguage;
+  const { i18n } = useTranslation();
+  
+  // Get initial language from local storage or default to English
+  const getInitialLanguage = (): Language => {
+    const savedLang = localStorage.getItem("language");
+    if (savedLang && languages.includes(savedLang as Language)) {
+      return savedLang as Language;
     }
-    // Try to match browser language
-    const browserLang = navigator.language.split("-")[0];
-    const matchedLang = languages.find(lang => lang === browserLang) || "en";
-    return matchedLang as Language;
-  });
+    return "en";
+  };
 
-  // Effect to sync language with i18n when component mounts or language changes
-  useEffect(() => {
-    // Force a re-render of all components using translations
-    i18n.changeLanguage(language).then(() => {
-      // Additional operations after language change if needed
-      document.documentElement.setAttribute('lang', language);
-    });
-  }, [language]);
+  // Track the current language
+  const [currentLanguage, setCurrentLanguage] = useState<Language>(getInitialLanguage());
 
-  // Listen for language changes from i18n itself (external sources)
-  useEffect(() => {
-    const handleLanguageChanged = (newLang: string) => {
-      if (newLang !== language && languages.includes(newLang as Language)) {
-        setLanguage(newLang as Language);
-        localStorage.setItem("language", newLang);
-      }
-    };
-
-    i18n.on('languageChanged', handleLanguageChanged);
+  // Change language function
+  const setLanguage = (lang: Language) => {
+    // Save to state
+    setCurrentLanguage(lang);
     
-    return () => {
-      i18n.off('languageChanged', handleLanguageChanged);
-    };
-  }, [language]);
-
-  const changeLanguage = (lang: Language) => {
-    console.log("LanguageContext: changing language to:", lang);
-    setLanguage(lang);
-    i18n.changeLanguage(lang);
+    // Save to localStorage
     localStorage.setItem("language", lang);
     
-    // Force page re-render to update all translated content
-    window.dispatchEvent(new Event('languagechange'));
+    // Change i18n language
+    i18n.changeLanguage(lang);
+    
+    // For debugging
+    console.log(`Language switched to: ${lang}`);
+  };
+
+  // Context value
+  const contextValue = {
+    currentLanguage,
+    setLanguage,
+    languageOptions,
   };
 
   return (
-    <LanguageContext.Provider
-      value={{
-        language,
-        changeLanguage,
-        languageOptions,
-      }}
-    >
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
 }
 
+// Custom hook to use the language context
 export function useLanguage() {
   const context = useContext(LanguageContext);
+  
   if (!context) {
-    console.warn("useLanguage is not within a LanguageProvider - using default values");
-    return defaultContextValue;
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
+  
   return context;
 }
