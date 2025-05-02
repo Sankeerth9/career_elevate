@@ -47,7 +47,10 @@ import {
   Clock,
   Calendar,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  ArrowRight,
+  School,
+  DollarSign
 } from "lucide-react";
 
 export default function EducationalPathways() {
