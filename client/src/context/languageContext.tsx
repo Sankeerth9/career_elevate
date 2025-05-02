@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 import { languages } from "@shared/schema";
 import i18n from "../i18n";
 
@@ -9,6 +8,7 @@ interface LanguageOption {
   code: Language;
   name: string;
   nativeName: string;
+  flag: string; // Added flag emoji for better visual representation
 }
 
 interface LanguageContextType {
@@ -18,14 +18,14 @@ interface LanguageContextType {
 }
 
 const languageOptions: LanguageOption[] = [
-  { code: "en", name: "English", nativeName: "English" },
-  { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
-  { code: "te", name: "Telugu", nativeName: "తెలుగు" },
-  { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
-  { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ" },
-  { code: "ml", name: "Malayalam", nativeName: "മലയാളം" },
-  { code: "bn", name: "Bengali", nativeName: "বাংলা" },
-  { code: "mr", name: "Marathi", nativeName: "मराठी" },
+  { code: "en", name: "English", nativeName: "English", flag: "🇬🇧" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳" },
+  { code: "te", name: "Telugu", nativeName: "తెలుగు", flag: "🇮🇳" },
+  { code: "ta", name: "Tamil", nativeName: "தமிழ்", flag: "🇮🇳" },
+  { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ", flag: "🇮🇳" },
+  { code: "ml", name: "Malayalam", nativeName: "മലയാളം", flag: "🇮🇳" },
+  { code: "bn", name: "Bengali", nativeName: "বাংলা", flag: "🇮🇳" },
+  { code: "mr", name: "Marathi", nativeName: "मराठी", flag: "🇮🇳" },
 ];
 
 // Create the context with default values to avoid undefined checks
@@ -38,9 +38,8 @@ const defaultContextValue: LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType>(defaultContextValue);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Don't use useTranslation here to avoid circular dependency
+  // Initialize from localStorage or browser language
   const [language, setLanguage] = useState<Language>(() => {
-    // Initialize from localStorage or browser language
     const savedLanguage = localStorage.getItem("language") as Language;
     if (savedLanguage && languages.includes(savedLanguage as Language)) {
       return savedLanguage;
@@ -51,16 +50,39 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return matchedLang as Language;
   });
 
-  // Effect to sync language with i18n when component mounts
+  // Effect to sync language with i18n when component mounts or language changes
   useEffect(() => {
-    i18n.changeLanguage(language);
+    // Force a re-render of all components using translations
+    i18n.changeLanguage(language).then(() => {
+      // Additional operations after language change if needed
+      document.documentElement.setAttribute('lang', language);
+    });
+  }, [language]);
+
+  // Listen for language changes from i18n itself (external sources)
+  useEffect(() => {
+    const handleLanguageChanged = (newLang: string) => {
+      if (newLang !== language && languages.includes(newLang as Language)) {
+        setLanguage(newLang as Language);
+        localStorage.setItem("language", newLang);
+      }
+    };
+
+    i18n.on('languageChanged', handleLanguageChanged);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChanged);
+    };
   }, [language]);
 
   const changeLanguage = (lang: Language) => {
-    console.log("Changing language to:", lang);
+    console.log("LanguageContext: changing language to:", lang);
     setLanguage(lang);
     i18n.changeLanguage(lang);
     localStorage.setItem("language", lang);
+    
+    // Force page re-render to update all translated content
+    window.dispatchEvent(new Event('languagechange'));
   };
 
   return (
