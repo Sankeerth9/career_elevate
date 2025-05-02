@@ -52,7 +52,7 @@ import {
 
 export default function EducationalPathways() {
   const { t } = useTranslation();
-  const [educationLevel, setEducationLevel] = useState<string>("");
+  const [educationLevel, setEducationLevel] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState("pathways");
 
@@ -132,7 +132,7 @@ export default function EducationalPathways() {
                   <SelectValue placeholder="Filter by education level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All education levels</SelectItem>
+                  <SelectItem value="all">All education levels</SelectItem>
                   {educationLevels.map((level) => (
                     <SelectItem key={level} value={level}>
                       {t(`educationLevels.${level}`)}
@@ -228,7 +228,7 @@ export default function EducationalPathways() {
                   className="mt-4"
                   onClick={() => {
                     setSearchQuery("");
-                    setEducationLevel("");
+                    setEducationLevel("all");
                   }}
                 >
                   Clear Filters
