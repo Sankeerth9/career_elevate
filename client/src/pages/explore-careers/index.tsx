@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { useSearchParams, Link } from "react-router-dom";
+import { Link, useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { getEducationalPathways } from "@/lib/api";
 import { 
   educationLevels, 
   states, 
   careerAims, 
-  budgetRanges 
+  budgetRanges,
+  EducationalPathway 
 } from "@shared/schema";
 import { trendingCareerFields } from "@/lib/careerData";
 import {
@@ -51,7 +52,10 @@ import { Badge } from "@/components/ui/badge";
 
 export default function ExploreCareers() {
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [location, setLocation] = useLocation();
+  const search = useSearch();
+  const searchParams = new URLSearchParams(search);
+  
   const [activeTab, setActiveTab] = useState("careers");
   const [filters, setFilters] = useState({
     educationLevel: searchParams.get("educationLevel") || "",
@@ -61,7 +65,7 @@ export default function ExploreCareers() {
   });
 
   // Fetch educational pathways
-  const { data: pathways, isLoading } = useQuery({
+  const { data: pathways, isLoading } = useQuery<EducationalPathway[]>({
     queryKey: ['/api/pathways', filters.educationLevel],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -74,8 +78,8 @@ export default function ExploreCareers() {
         newParams.append(key, value);
       }
     });
-    setSearchParams(newParams);
-  }, [filters, setSearchParams]);
+    setLocation(`/explore-careers?${newParams.toString()}`);
+  }, [filters, setLocation]);
 
   const handleFilterChange = (field: string, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }));
@@ -135,7 +139,7 @@ export default function ExploreCareers() {
                     <SelectValue placeholder="All levels" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All levels</SelectItem>
+                    <SelectItem value="all">All levels</SelectItem>
                     {educationLevels.map((level) => (
                       <SelectItem key={level} value={level}>
                         {t(`educationLevels.${level}`)}
@@ -157,7 +161,7 @@ export default function ExploreCareers() {
                     <SelectValue placeholder="All states" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All states</SelectItem>
+                    <SelectItem value="all">All states</SelectItem>
                     {states.map((state) => (
                       <SelectItem key={state} value={state}>
                         {t(`states.${state}`)}
@@ -179,7 +183,7 @@ export default function ExploreCareers() {
                     <SelectValue placeholder="All careers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All careers</SelectItem>
+                    <SelectItem value="all">All careers</SelectItem>
                     {careerAims.map((aim) => (
                       <SelectItem key={aim} value={aim}>
                         {t(`careerAims.${aim}`)}
@@ -201,7 +205,7 @@ export default function ExploreCareers() {
                     <SelectValue placeholder="All budgets" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All budgets</SelectItem>
+                    <SelectItem value="all">All budgets</SelectItem>
                     {budgetRanges.map((range) => (
                       <SelectItem key={range} value={range}>
                         {t(`budgetRanges.${range}`)}
@@ -305,7 +309,7 @@ export default function ExploreCareers() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pathways?.map((pathway) => (
+                {pathways && pathways.map((pathway) => (
                   <Card key={pathway.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <div className="flex items-center space-x-2">
@@ -407,8 +411,8 @@ export default function ExploreCareers() {
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <div className="font-medium">Professional Degree (MD, etc.)</div>
-                      <div className="text-right">₹12L - ₹40L+</div>
+                      <div className="font-medium">Professional Degree (Medical/Law)</div>
+                      <div className="text-right">₹10L - ₹35L+</div>
                       <div className="w-full max-w-xs bg-slate-100 rounded-full h-4 ml-4">
                         <div className="bg-primary h-4 rounded-full" style={{ width: "100%" }}></div>
                       </div>
@@ -417,105 +421,121 @@ export default function ExploreCareers() {
                 </CardContent>
               </Card>
 
-              {/* Regional Trends Card */}
+              {/* Job Growth Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <MapPin className="mr-2 h-5 w-5" />
-                    Regional Growth Trends
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-bold">Bangalore</h3>
-                      <div className="text-sm text-muted-foreground mb-2">Top Sectors</div>
-                      <div className="space-y-1">
-                        <Badge className="mr-1 mb-1">IT</Badge>
-                        <Badge className="mr-1 mb-1">Startups</Badge>
-                        <Badge className="mr-1 mb-1">Fintech</Badge>
-                      </div>
-                      <div className="flex justify-between mt-3">
-                        <span className="text-sm text-muted-foreground">Growth</span>
-                        <span className="text-sm font-medium text-green-600">+22%</span>
-                      </div>
-                    </div>
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-bold">Hyderabad</h3>
-                      <div className="text-sm text-muted-foreground mb-2">Top Sectors</div>
-                      <div className="space-y-1">
-                        <Badge className="mr-1 mb-1">IT</Badge>
-                        <Badge className="mr-1 mb-1">Pharma</Badge>
-                        <Badge className="mr-1 mb-1">Education</Badge>
-                      </div>
-                      <div className="flex justify-between mt-3">
-                        <span className="text-sm text-muted-foreground">Growth</span>
-                        <span className="text-sm font-medium text-green-600">+20%</span>
-                      </div>
-                    </div>
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-bold">Delhi NCR</h3>
-                      <div className="text-sm text-muted-foreground mb-2">Top Sectors</div>
-                      <div className="space-y-1">
-                        <Badge className="mr-1 mb-1">E-commerce</Badge>
-                        <Badge className="mr-1 mb-1">IT/ITES</Badge>
-                        <Badge className="mr-1 mb-1">Consulting</Badge>
-                      </div>
-                      <div className="flex justify-between mt-3">
-                        <span className="text-sm text-muted-foreground">Growth</span>
-                        <span className="text-sm font-medium text-green-600">+18%</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Future Trends Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Clock className="mr-2 h-5 w-5" />
-                    Future Career Trends (5-Year Forecast)
+                    <TrendingUp className="mr-2 h-5 w-5" />
+                    Fastest Growing Career Fields
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="p-4 border rounded-lg bg-purple-50">
-                      <h3 className="font-bold">AI & Machine Learning</h3>
-                      <p className="text-sm mt-1">Expected to grow exponentially with emerging applications in healthcare, finance, and education.</p>
-                      <div className="flex justify-between mt-3">
-                        <span className="text-sm text-muted-foreground">Projected Growth</span>
-                        <span className="text-sm font-medium text-purple-600">+75%</span>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">Data Science & AI</div>
+                      <div className="flex items-center text-green-600">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        37% growth
+                      </div>
+                      <div className="w-full max-w-xs bg-slate-100 rounded-full h-4 ml-4">
+                        <div className="bg-green-500 h-4 rounded-full" style={{ width: "100%" }}></div>
                       </div>
                     </div>
-                    <div className="p-4 border rounded-lg bg-blue-50">
-                      <h3 className="font-bold">Renewable Energy</h3>
-                      <p className="text-sm mt-1">Increasing focus on sustainability is driving demand for renewable energy professionals.</p>
-                      <div className="flex justify-between mt-3">
-                        <span className="text-sm text-muted-foreground">Projected Growth</span>
-                        <span className="text-sm font-medium text-blue-600">+65%</span>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">Healthcare</div>
+                      <div className="flex items-center text-green-600">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        29% growth
+                      </div>
+                      <div className="w-full max-w-xs bg-slate-100 rounded-full h-4 ml-4">
+                        <div className="bg-green-500 h-4 rounded-full" style={{ width: "85%" }}></div>
                       </div>
                     </div>
-                    <div className="p-4 border rounded-lg bg-green-50">
-                      <h3 className="font-bold">Healthcare Tech</h3>
-                      <p className="text-sm mt-1">Integration of technology in healthcare will create new roles and opportunities.</p>
-                      <div className="flex justify-between mt-3">
-                        <span className="text-sm text-muted-foreground">Projected Growth</span>
-                        <span className="text-sm font-medium text-green-600">+55%</span>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">Renewable Energy</div>
+                      <div className="flex items-center text-green-600">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        25% growth
+                      </div>
+                      <div className="w-full max-w-xs bg-slate-100 rounded-full h-4 ml-4">
+                        <div className="bg-green-500 h-4 rounded-full" style={{ width: "75%" }}></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">Cybersecurity</div>
+                      <div className="flex items-center text-green-600">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        23% growth
+                      </div>
+                      <div className="w-full max-w-xs bg-slate-100 rounded-full h-4 ml-4">
+                        <div className="bg-green-500 h-4 rounded-full" style={{ width: "70%" }}></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">Digital Marketing</div>
+                      <div className="flex items-center text-green-600">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        18% growth
+                      </div>
+                      <div className="w-full max-w-xs bg-slate-100 rounded-full h-4 ml-4">
+                        <div className="bg-green-500 h-4 rounded-full" style={{ width: "60%" }}></div>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </div>
 
-            <div className="mt-8 text-center">
-              <Link to="/job-listings">
-                <Button>
-                  Browse Job Listings
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              {/* Regional Insights */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <MapPin className="mr-2 h-5 w-5" />
+                    Regional Job Market Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-semibold mb-2">Bengaluru (Karnataka)</h4>
+                        <p className="text-sm text-muted-foreground mb-2">Top tech hub with highest IT salaries</p>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="outline" className="text-xs">Software</Badge>
+                          <Badge variant="outline" className="text-xs">AI/ML</Badge>
+                          <Badge variant="outline" className="text-xs">Startups</Badge>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-semibold mb-2">Hyderabad (Telangana)</h4>
+                        <p className="text-sm text-muted-foreground mb-2">Growing IT center with pharma industry</p>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="outline" className="text-xs">IT Services</Badge>
+                          <Badge variant="outline" className="text-xs">Pharma</Badge>
+                          <Badge variant="outline" className="text-xs">Biotech</Badge>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-semibold mb-2">Mumbai (Maharashtra)</h4>
+                        <p className="text-sm text-muted-foreground mb-2">Financial capital with diverse opportunities</p>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="outline" className="text-xs">Finance</Badge>
+                          <Badge variant="outline" className="text-xs">Media</Badge>
+                          <Badge variant="outline" className="text-xs">Entertainment</Badge>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-semibold mb-2">Chennai (Tamil Nadu)</h4>
+                        <p className="text-sm text-muted-foreground mb-2">Manufacturing and IT services hub</p>
+                        <div className="flex flex-wrap gap-1">
+                          <Badge variant="outline" className="text-xs">Automotive</Badge>
+                          <Badge variant="outline" className="text-xs">IT Services</Badge>
+                          <Badge variant="outline" className="text-xs">Manufacturing</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
