@@ -67,8 +67,8 @@ export default function Register() {
       confirmPassword: "",
       fullName: "",
       phone: "",
-      educationLevel: "",
-      state: "",
+      educationLevel: "none",
+      state: "none",
       languagePreference: "en",
     },
   });
@@ -253,7 +253,7 @@ export default function Register() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Select education level</SelectItem>
+                            <SelectItem value="none">Select education level</SelectItem>
                             {educationLevels.map((level) => (
                               <SelectItem key={level} value={level}>
                                 {t(`educationLevels.${level}`)}
@@ -285,7 +285,7 @@ export default function Register() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Select state</SelectItem>
+                            <SelectItem value="none">Select state</SelectItem>
                             {states.map((state) => (
                               <SelectItem key={state} value={state}>
                                 {t(`states.${state}`)}

@@ -75,7 +75,7 @@ export default function EducationalPathways() {
   });
 
   // Get icon based on pathway title
-  const getPathwayIcon = (title: string, icon?: string) => {
+  const getPathwayIcon = (title: string, icon?: string | null) => {
     if (icon === "building") return <Building className="h-5 w-5" />;
     if (icon === "heart") return <Heart className="h-5 w-5" />;
     if (icon === "scale") return <Scale className="h-5 w-5" />;
