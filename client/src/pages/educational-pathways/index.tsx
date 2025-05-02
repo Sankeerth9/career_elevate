@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { Link } from "wouter";
+import { Link, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { getEducationalPathways } from "@/lib/api";
+import { getEducationalPathways, getEducationalPathway } from "@/lib/api";
 import { getExamsByCareer } from "@/data/entranceExams";
 import { educationLevels, EducationalPathway } from "@shared/schema";
+import PathwayDetailPage from "./PathwayDetailPage";
 import {
   Card,
   CardContent,
@@ -55,28 +56,43 @@ import {
 
 export default function EducationalPathways() {
   const { t } = useTranslation();
+  const [, params] = useRoute<{ id: string }>("/educational-pathways/:id");
+  const pathwayId = params?.id ? parseInt(params.id, 10) : null;
   const [educationLevel, setEducationLevel] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState("pathways");
 
-  // Fetch educational pathways
-  const { data: pathways, isLoading } = useQuery<EducationalPathway[]>({
+  // Fetch single pathway if ID is provided
+  const { 
+    data: pathway, 
+    isLoading: isLoadingPathway 
+  } = useQuery<EducationalPathway>({
+    queryKey: [`/api/pathways/${pathwayId}`],
+    queryFn: () => getEducationalPathway(pathwayId!),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: pathwayId !== null,
+  });
+
+  // Fetch all pathways if no ID is provided
+  const { 
+    data: pathways, 
+    isLoading: isLoadingPathways 
+  } = useQuery<EducationalPathway[]>({
     queryKey: ['/api/pathways', educationLevel],
     queryFn: () => getEducationalPathways(educationLevel === 'all' ? undefined : educationLevel),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: pathwayId === null,
   });
-
-  console.log("Received pathways:", pathways); // Debug log
   
-  // Filter pathways by search query
-  const filteredPathways = pathways?.filter((pathway: EducationalPathway) => {
+  // Filter pathways by search query (only when in list view)
+  const filteredPathways = pathways?.filter((p: EducationalPathway) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      pathway.title.toLowerCase().includes(query) ||
-      pathway.description.toLowerCase().includes(query) ||
-      pathway.entranceExams?.some((exam: string) => exam.toLowerCase().includes(query)) ||
-      pathway.topInstitutes?.some((institute: string) => institute.toLowerCase().includes(query))
+      p.title.toLowerCase().includes(query) ||
+      p.description.toLowerCase().includes(query) ||
+      p.entranceExams?.some((exam: string) => exam.toLowerCase().includes(query)) ||
+      p.topInstitutes?.some((institute: string) => institute.toLowerCase().includes(query))
     );
   });
 
@@ -150,16 +166,17 @@ export default function EducationalPathways() {
           </CardContent>
         </Card>
 
-        {/* Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="w-full max-w-md mb-6">
-            <TabsTrigger value="pathways">
-              <GraduationCap className="mr-2 h-4 w-4" />
-              Pathways
-            </TabsTrigger>
-            <TabsTrigger value="exams">
-              <BookOpen className="mr-2 h-4 w-4" />
-              Entrance Exams
+        {/* Content Tabs - Only show when not in detail view */}
+        {!pathwayId && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+            <TabsList className="w-full max-w-md mb-6">
+              <TabsTrigger value="pathways">
+                <GraduationCap className="mr-2 h-4 w-4" />
+                Pathways
+              </TabsTrigger>
+              <TabsTrigger value="exams">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Entrance Exams
             </TabsTrigger>
             <TabsTrigger value="institutions">
               <Building className="mr-2 h-4 w-4" />
@@ -167,9 +184,36 @@ export default function EducationalPathways() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Pathways Tab */}
+          {/* Show Detail View if pathwayId is present */}
+          {pathwayId ? (
+            isLoadingPathway ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : pathway ? (
+              <PathwayDetailPage pathway={pathway} />
+            ) : (
+              <div className="text-center py-12">
+                <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-semibold">Pathway Not Found</h3>
+                <p className="mt-2 text-muted-foreground">
+                  The educational pathway you're looking for doesn't exist or has been removed.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  asChild
+                >
+                  <Link to="/educational-pathways">
+                    Back to Pathways
+                  </Link>
+                </Button>
+              </div>
+            )
+          ) : (
+          /* Pathways List Tab */
           <TabsContent value="pathways">
-            {isLoading ? (
+            {isLoadingPathways ? (
               <div className="flex justify-center items-center py-10">
                 <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
               </div>
