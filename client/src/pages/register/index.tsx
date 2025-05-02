@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,7 +55,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function Register() {
   const { t } = useTranslation();
   const { register } = useAuth();
-  const navigate = useNavigate();
+  const [_, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<RegisterFormValues>({
@@ -77,7 +77,7 @@ export default function Register() {
     try {
       setIsLoading(true);
       await register(data);
-      navigate("/"); // Redirect to home page after successful registration
+      setLocation("/"); // Redirect to home page after successful registration
     } catch (error) {
       console.error("Registration failed:", error);
       if (error instanceof Error) {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,12 +30,11 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const { t } = useTranslation();
   const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [_, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get redirect URL from location state or default to home
-  const from = location.state?.from?.pathname || "/";
+  // Default redirect to home
+  const from = "/";
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -50,7 +49,7 @@ export default function Login() {
       setIsLoading(true);
       await login(data.username, data.password);
       // Redirect to the page they tried to visit or home page
-      navigate(from, { replace: true });
+      setLocation(from);
     } catch (error) {
       console.error("Login failed:", error);
       form.setError("root", {
