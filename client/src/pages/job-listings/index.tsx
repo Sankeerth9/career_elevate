@@ -458,7 +458,7 @@ export default function JobListings() {
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full" asChild>
-                  <Link to="/career-assessment">
+                  <Link to="/ai-recommendations">
                     Take Career Assessment
                   </Link>
                 </Button>
