@@ -49,7 +49,6 @@ import {
   Calendar,
   ExternalLink,
   AlertCircle,
-  ArrowRight,
   School,
   DollarSign
 } from "lucide-react";
@@ -115,6 +114,56 @@ export default function EducationalPathways() {
   const lawExams = getExamsByCareer("Law");
   const commerceExams = getExamsByCareer("Chartered Accountancy");
 
+  // If we're showing a specific pathway detail
+  if (pathwayId !== null) {
+    return (
+      <>
+        <Helmet>
+          <title>{pathway?.title || "Pathway Details"} | {t("appName")}</title>
+        </Helmet>
+
+        <div className="bg-primary-700 pt-8 pb-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Educational Pathway Details
+            </h1>
+            <p className="mt-3 text-xl text-primary-200">
+              Detailed information about career pathway, entrance exams, and institutions
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {isLoadingPathway ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+            </div>
+          ) : pathway ? (
+            <PathwayDetailPage pathway={pathway} />
+          ) : (
+            <div className="text-center py-12">
+              <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">Pathway Not Found</h3>
+              <p className="mt-2 text-muted-foreground">
+                The educational pathway you're looking for doesn't exist or has been removed.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                asChild
+              >
+                <Link to="/educational-pathways">
+                  Back to Pathways
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Otherwise, show the list view
   return (
     <>
       <Helmet>
@@ -166,17 +215,16 @@ export default function EducationalPathways() {
           </CardContent>
         </Card>
 
-        {/* Content Tabs - Only show when not in detail view */}
-        {!pathwayId && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <TabsList className="w-full max-w-md mb-6">
-              <TabsTrigger value="pathways">
-                <GraduationCap className="mr-2 h-4 w-4" />
-                Pathways
-              </TabsTrigger>
-              <TabsTrigger value="exams">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Entrance Exams
+        {/* Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="w-full max-w-md mb-6">
+            <TabsTrigger value="pathways">
+              <GraduationCap className="mr-2 h-4 w-4" />
+              Pathways
+            </TabsTrigger>
+            <TabsTrigger value="exams">
+              <BookOpen className="mr-2 h-4 w-4" />
+              Entrance Exams
             </TabsTrigger>
             <TabsTrigger value="institutions">
               <Building className="mr-2 h-4 w-4" />
@@ -184,34 +232,7 @@ export default function EducationalPathways() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Show Detail View if pathwayId is present */}
-          {pathwayId ? (
-            isLoadingPathway ? (
-              <div className="flex justify-center items-center py-10">
-                <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
-              </div>
-            ) : pathway ? (
-              <PathwayDetailPage pathway={pathway} />
-            ) : (
-              <div className="text-center py-12">
-                <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">Pathway Not Found</h3>
-                <p className="mt-2 text-muted-foreground">
-                  The educational pathway you're looking for doesn't exist or has been removed.
-                </p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  asChild
-                >
-                  <Link to="/educational-pathways">
-                    Back to Pathways
-                  </Link>
-                </Button>
-              </div>
-            )
-          ) : (
-          /* Pathways List Tab */
+          {/* Pathways Tab */}
           <TabsContent value="pathways">
             {isLoadingPathways ? (
               <div className="flex justify-center items-center py-10">
@@ -407,7 +428,7 @@ export default function EducationalPathways() {
                       <AccordionItem key={exam.id} value={exam.id.toString()}>
                         <AccordionTrigger className="hover:no-underline">
                           <div className="flex items-center">
-                            <BookOpen className="mr-2 h-5 w-5 text-accent-500" />
+                            <BookOpen className="mr-2 h-5 w-5 text-purple-500" />
                             <div>
                               <div className="font-medium text-left">{exam.name}</div>
                               <div className="text-sm text-muted-foreground text-left">{exam.fullName}</div>
@@ -439,7 +460,7 @@ export default function EducationalPathways() {
                               href={exam.officialWebsite} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-primary hover:underline flex items-center"
+                              className="text-purple-500 hover:underline flex items-center"
                             >
                               Visit Official Website
                               <ExternalLink className="ml-1 h-3 w-3" />
@@ -463,7 +484,7 @@ export default function EducationalPathways() {
                       <AccordionItem key={exam.id} value={exam.id.toString()}>
                         <AccordionTrigger className="hover:no-underline">
                           <div className="flex items-center">
-                            <BookOpen className="mr-2 h-5 w-5 text-secondary-500" />
+                            <BookOpen className="mr-2 h-5 w-5 text-green-500" />
                             <div>
                               <div className="font-medium text-left">{exam.name}</div>
                               <div className="text-sm text-muted-foreground text-left">{exam.fullName}</div>
@@ -495,7 +516,7 @@ export default function EducationalPathways() {
                               href={exam.officialWebsite} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-primary hover:underline flex items-center"
+                              className="text-green-500 hover:underline flex items-center"
                             >
                               Visit Official Website
                               <ExternalLink className="ml-1 h-3 w-3" />
@@ -510,8 +531,8 @@ export default function EducationalPathways() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Commerce & Management Exams</CardTitle>
-                  <CardDescription>Key exams for commerce and management aspirants</CardDescription>
+                  <CardTitle>Commerce Entrance Exams</CardTitle>
+                  <CardDescription>Key exams for commerce and accounting aspirants</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
@@ -551,7 +572,7 @@ export default function EducationalPathways() {
                               href={exam.officialWebsite} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="text-primary hover:underline flex items-center"
+                              className="text-blue-500 hover:underline flex items-center"
                             >
                               Visit Official Website
                               <ExternalLink className="ml-1 h-3 w-3" />
@@ -568,246 +589,131 @@ export default function EducationalPathways() {
 
           {/* Institutions Tab */}
           <TabsContent value="institutions">
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {/* Engineering Institutions */}
-              <Card>
-                <CardHeader className="bg-primary-50 border-b">
-                  <CardTitle className="flex items-center">
-                    <Building className="mr-2 h-5 w-5 text-primary" />
-                    Top Engineering Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-3">
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIT Bombay</span>
-                      <span className="text-sm text-muted-foreground">Mumbai</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIT Delhi</span>
-                      <span className="text-sm text-muted-foreground">Delhi</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIT Madras</span>
-                      <span className="text-sm text-muted-foreground">Chennai</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIT Kanpur</span>
-                      <span className="text-sm text-muted-foreground">Kanpur</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">BITS Pilani</span>
-                      <span className="text-sm text-muted-foreground">Pilani</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">NIT Trichy</span>
-                      <span className="text-sm text-muted-foreground">Tiruchirappalli</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Educational Institutions</CardTitle>
+                <CardDescription>Leading institutions across different fields</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Engineering Institutions */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="mr-3 p-2 bg-primary-100 text-primary-700 rounded-lg">
+                          <Building className="h-5 w-5" />
+                        </div>
+                        <CardTitle>Engineering</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="text-sm font-medium">Indian Institutes of Technology (IITs)</div>
+                      <div className="text-sm font-medium">National Institutes of Technology (NITs)</div>
+                      <div className="text-sm font-medium">BITS Pilani</div>
+                      <div className="text-sm font-medium">Delhi Technological University</div>
+                      <div className="text-sm font-medium">VIT Vellore</div>
+                    </CardContent>
+                  </Card>
 
-              {/* Medical Institutions */}
-              <Card>
-                <CardHeader className="bg-purple-50 border-b">
-                  <CardTitle className="flex items-center">
-                    <Heart className="mr-2 h-5 w-5 text-purple-600" />
-                    Top Medical Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-3">
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">AIIMS Delhi</span>
-                      <span className="text-sm text-muted-foreground">New Delhi</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">JIPMER</span>
-                      <span className="text-sm text-muted-foreground">Puducherry</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">CMC Vellore</span>
-                      <span className="text-sm text-muted-foreground">Vellore</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">AFMC</span>
-                      <span className="text-sm text-muted-foreground">Pune</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">KGMU</span>
-                      <span className="text-sm text-muted-foreground">Lucknow</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Maulana Azad Medical College</span>
-                      <span className="text-sm text-muted-foreground">Delhi</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+                  {/* Medical Institutions */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="mr-3 p-2 bg-purple-100 text-purple-700 rounded-lg">
+                          <Heart className="h-5 w-5" />
+                        </div>
+                        <CardTitle>Medical</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="text-sm font-medium">AIIMS Delhi</div>
+                      <div className="text-sm font-medium">Christian Medical College, Vellore</div>
+                      <div className="text-sm font-medium">JIPMER Puducherry</div>
+                      <div className="text-sm font-medium">Maulana Azad Medical College</div>
+                      <div className="text-sm font-medium">King George's Medical University</div>
+                    </CardContent>
+                  </Card>
 
-              {/* Law Institutions */}
-              <Card>
-                <CardHeader className="bg-green-50 border-b">
-                  <CardTitle className="flex items-center">
-                    <Scale className="mr-2 h-5 w-5 text-green-600" />
-                    Top Law Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-3">
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">NLSIU</span>
-                      <span className="text-sm text-muted-foreground">Bangalore</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">NALSAR</span>
-                      <span className="text-sm text-muted-foreground">Hyderabad</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">NLU Delhi</span>
-                      <span className="text-sm text-muted-foreground">Delhi</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">WBNUJS</span>
-                      <span className="text-sm text-muted-foreground">Kolkata</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">ILS Law College</span>
-                      <span className="text-sm text-muted-foreground">Pune</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Symbiosis Law School</span>
-                      <span className="text-sm text-muted-foreground">Pune</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+                  {/* Law Institutions */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="mr-3 p-2 bg-green-100 text-green-700 rounded-lg">
+                          <Scale className="h-5 w-5" />
+                        </div>
+                        <CardTitle>Law</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="text-sm font-medium">National Law School of India University, Bangalore</div>
+                      <div className="text-sm font-medium">NALSAR University of Law, Hyderabad</div>
+                      <div className="text-sm font-medium">National Law University, Delhi</div>
+                      <div className="text-sm font-medium">Symbiosis Law School, Pune</div>
+                      <div className="text-sm font-medium">Faculty of Law, Delhi University</div>
+                    </CardContent>
+                  </Card>
 
-              {/* Management Institutions */}
-              <Card>
-                <CardHeader className="bg-blue-50 border-b">
-                  <CardTitle className="flex items-center">
-                    <Briefcase className="mr-2 h-5 w-5 text-blue-600" />
-                    Top Management Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-3">
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIM Ahmedabad</span>
-                      <span className="text-sm text-muted-foreground">Ahmedabad</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIM Bangalore</span>
-                      <span className="text-sm text-muted-foreground">Bangalore</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IIM Calcutta</span>
-                      <span className="text-sm text-muted-foreground">Kolkata</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">XLRI</span>
-                      <span className="text-sm text-muted-foreground">Jamshedpur</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">ISB</span>
-                      <span className="text-sm text-muted-foreground">Hyderabad</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">FMS Delhi</span>
-                      <span className="text-sm text-muted-foreground">Delhi</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+                  {/* Commerce/Management Institutions */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="mr-3 p-2 bg-blue-100 text-blue-700 rounded-lg">
+                          <Briefcase className="h-5 w-5" />
+                        </div>
+                        <CardTitle>Commerce & Management</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="text-sm font-medium">Indian Institutes of Management (IIMs)</div>
+                      <div className="text-sm font-medium">XLRI Jamshedpur</div>
+                      <div className="text-sm font-medium">FMS Delhi</div>
+                      <div className="text-sm font-medium">SRCC, Delhi University</div>
+                      <div className="text-sm font-medium">Narsee Monjee Institute of Management Studies</div>
+                    </CardContent>
+                  </Card>
 
-              {/* Arts & Humanities Institutions */}
-              <Card>
-                <CardHeader className="bg-amber-50 border-b">
-                  <CardTitle className="flex items-center">
-                    <BookOpen className="mr-2 h-5 w-5 text-amber-600" />
-                    Top Arts & Humanities Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-3">
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">JNU</span>
-                      <span className="text-sm text-muted-foreground">New Delhi</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Delhi University</span>
-                      <span className="text-sm text-muted-foreground">Delhi</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Jadavpur University</span>
-                      <span className="text-sm text-muted-foreground">Kolkata</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Jamia Millia Islamia</span>
-                      <span className="text-sm text-muted-foreground">New Delhi</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Loyola College</span>
-                      <span className="text-sm text-muted-foreground">Chennai</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">Christ University</span>
-                      <span className="text-sm text-muted-foreground">Bangalore</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+                  {/* Arts & Humanities Institutions */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="mr-3 p-2 bg-amber-100 text-amber-700 rounded-lg">
+                          <GraduationCap className="h-5 w-5" />
+                        </div>
+                        <CardTitle>Arts & Humanities</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="text-sm font-medium">St. Stephen's College, Delhi</div>
+                      <div className="text-sm font-medium">Lady Shri Ram College, Delhi</div>
+                      <div className="text-sm font-medium">Loyola College, Chennai</div>
+                      <div className="text-sm font-medium">Christ University, Bangalore</div>
+                      <div className="text-sm font-medium">Jawaharlal Nehru University, Delhi</div>
+                    </CardContent>
+                  </Card>
 
-              {/* Science Institutions */}
-              <Card>
-                <CardHeader className="bg-indigo-50 border-b">
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="mr-2 h-5 w-5 text-indigo-600" />
-                    Top Science Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-3">
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IISc</span>
-                      <span className="text-sm text-muted-foreground">Bangalore</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IISER Pune</span>
-                      <span className="text-sm text-muted-foreground">Pune</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">TIFR</span>
-                      <span className="text-sm text-muted-foreground">Mumbai</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IISER Mohali</span>
-                      <span className="text-sm text-muted-foreground">Mohali</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">IISC Bombay</span>
-                      <span className="text-sm text-muted-foreground">Mumbai</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="font-medium">CMI</span>
-                      <span className="text-sm text-muted-foreground">Chennai</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
+                  {/* Science Institutions */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center mb-2">
+                        <div className="mr-3 p-2 bg-cyan-100 text-cyan-700 rounded-lg">
+                          <BookOpen className="h-5 w-5" />
+                        </div>
+                        <CardTitle>Science</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="text-sm font-medium">Indian Institutes of Science Education and Research</div>
+                      <div className="text-sm font-medium">Indian Institute of Science, Bangalore</div>
+                      <div className="text-sm font-medium">St. Xavier's College, Mumbai</div>
+                      <div className="text-sm font-medium">Fergusson College, Pune</div>
+                      <div className="text-sm font-medium">Miranda House, Delhi</div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
-
-        <div className="mt-8 text-center">
-          <Link to="/career-assessment">
-            <Button>
-              Take Career Assessment
-              <GraduationCap className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-        </div>
       </div>
     </>
   );
