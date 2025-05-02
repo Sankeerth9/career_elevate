@@ -56,6 +56,8 @@ import {
   MapPin,
   Clock,
   AlertCircle,
+  FileText,
+  Building,
 } from "lucide-react";
 
 // Define form schema
@@ -538,6 +540,37 @@ export default function AIRecommendations() {
                                 ))}
                               </div>
                             </div>
+
+                            {recommendation.entranceExams && (
+                              <div>
+                                <h4 className="text-sm font-medium flex items-center mb-2">
+                                  <FileText className="mr-2 h-4 w-4 text-purple-600" />
+                                  Required Entrance Exams
+                                </h4>
+                                <p className="text-sm bg-purple-50 p-2 rounded-md">
+                                  {recommendation.entranceExams}
+                                </p>
+                              </div>
+                            )}
+
+                            {recommendation.recommendedColleges && (
+                              <div>
+                                <h4 className="text-sm font-medium flex items-center mb-2">
+                                  <Building className="mr-2 h-4 w-4 text-blue-600" />
+                                  College Recommendations
+                                  {recommendation.budgetCategory && (
+                                    <Badge className="ml-2" variant="outline">
+                                      {recommendation.budgetCategory === "low" ? "Budget Friendly" : 
+                                       recommendation.budgetCategory === "medium" ? "Moderate Cost" : 
+                                       "Premium Options"}
+                                    </Badge>
+                                  )}
+                                </h4>
+                                <p className="text-sm bg-blue-50 p-2 rounded-md">
+                                  {recommendation.recommendedColleges}
+                                </p>
+                              </div>
+                            )}
 
                             {recommendation.strengthsMatchScore && (
                               <div>
