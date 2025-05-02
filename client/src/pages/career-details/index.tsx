@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { useParams, Link } from "react-router-dom";
+import { useRoute, Link } from "wouter";
 import { trendingCareerFields } from "@/lib/careerData";
 import { getEducationalPathways } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
@@ -43,7 +43,8 @@ import { jobListings } from "@/data/jobMarketData";
 
 export default function CareerDetails() {
   const { t } = useTranslation();
-  const { id } = useParams<{ id: string }>();
+  const [match, params] = useRoute("/career/:id");
+  const id = params?.id;
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   

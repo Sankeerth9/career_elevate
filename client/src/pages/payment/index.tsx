@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useAuth } from "@/context/authContext";
 import { useToast } from "@/hooks/use-toast";
 import { createPayment } from "@/lib/api";
@@ -59,7 +59,7 @@ export default function Payment() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [_, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
   const [selectedPackage, setSelectedPackage] = useState<string>("standard");
