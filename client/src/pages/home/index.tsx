@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import HeroSection from "./HeroSection";
-import FilterSection from "./FilterSection";
 import PathwaysSection from "./PathwaysSection";
 import FeaturesSection from "./FeaturesSection";
 import CareerCta from "./CareerCta";
@@ -27,7 +26,6 @@ export default function Home() {
       </Helmet>
 
       <HeroSection />
-      <FilterSection />
       <PathwaysSection pathways={pathways || []} />
       <FeaturesSection />
       <CareerCta />

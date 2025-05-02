@@ -1,16 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { Link, useLocation, useSearch } from "wouter";
+import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { getEducationalPathways } from "@/lib/api";
-import { 
-  educationLevels, 
-  states, 
-  careerAims, 
-  budgetRanges,
-  EducationalPathway 
-} from "@shared/schema";
+import { EducationalPathway } from "@shared/schema";
 import { trendingCareerFields } from "@/lib/careerData";
 import {
   Card,
@@ -22,13 +16,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Tabs,
   TabsContent,
   TabsList,
@@ -39,60 +26,24 @@ import {
   Building,
   GraduationCap,
   Briefcase,
-  Search,
   ArrowRight,
   ChevronRight,
   TrendingUp,
   Banknote,
   MapPin,
-  Clock,
-  Filter
+  Clock
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function ExploreCareers() {
   const { t } = useTranslation();
-  const [location, setLocation] = useLocation();
-  const search = useSearch();
-  const searchParams = new URLSearchParams(search);
-  
   const [activeTab, setActiveTab] = useState("careers");
-  const [filters, setFilters] = useState({
-    educationLevel: searchParams.get("educationLevel") || "",
-    state: searchParams.get("state") || "",
-    careerAim: searchParams.get("careerAim") || "",
-    budget: searchParams.get("budget") || "",
-  });
 
   // Fetch educational pathways
   const { data: pathways, isLoading } = useQuery<EducationalPathway[]>({
-    queryKey: ['/api/pathways', filters.educationLevel],
+    queryKey: ['/api/pathways'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-  // Update search params when filters change
-  useEffect(() => {
-    const newParams = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        newParams.append(key, value);
-      }
-    });
-    setLocation(`/explore-careers?${newParams.toString()}`);
-  }, [filters, setLocation]);
-
-  const handleFilterChange = (field: string, value: string) => {
-    setFilters(prev => ({ ...prev, [field]: value }));
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      educationLevel: "",
-      state: "",
-      careerAim: "",
-      budget: "",
-    });
-  };
 
   return (
     <>
