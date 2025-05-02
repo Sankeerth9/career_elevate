@@ -123,14 +123,17 @@ export default function AIRecommendations() {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await apiRequest<{recommendations: any[], assessment: any}>("/api/test-ai-recommendation", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest(
+        "POST",
+        "/api/test-ai-recommendation",
+        data
+      );
       
-      if (response && response.recommendations) {
-        setRecommendations(response.recommendations);
-        setAssessment(response.assessment);
+      const responseData = await response.json();
+      
+      if (responseData && responseData.recommendations) {
+        setRecommendations(responseData.recommendations);
+        setAssessment(responseData.assessment);
         toast({
           title: "AI Recommendations Generated",
           description: "Based on your profile, we've found career pathways that match your interests and skills.",

@@ -45,7 +45,7 @@ export default function PathwaysSection({ pathways }: PathwaysSectionProps) {
                   pathway.title.includes("Medical") ? "bg-accent-500" : 
                   "bg-secondary-500"
                 } rounded-md p-3`}>
-                  {getPathwayIcon(pathway.icon)}
+                  {getPathwayIcon(pathway.icon || "building")}
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-neutral-900">{pathway.title}</h3>
