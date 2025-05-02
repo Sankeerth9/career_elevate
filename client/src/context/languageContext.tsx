@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { languages } from "@shared/schema";
+import i18n from "../i18n";
 
 type Language = (typeof languages)[number];
 
@@ -27,26 +28,33 @@ const languageOptions: LanguageOption[] = [
   { code: "mr", name: "Marathi", nativeName: "मराठी" },
 ];
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+// Create the context with default values to avoid undefined checks
+const defaultContextValue: LanguageContextType = {
+  language: "en",
+  changeLanguage: () => {},
+  languageOptions: languageOptions
+};
+
+const LanguageContext = createContext<LanguageContextType>(defaultContextValue);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const { i18n } = useTranslation();
-  const [language, setLanguage] = useState<Language>("en");
-
-  useEffect(() => {
-    // Load saved language from localStorage or use browser language
+  // Don't use useTranslation here to avoid circular dependency
+  const [language, setLanguage] = useState<Language>(() => {
+    // Initialize from localStorage or browser language
     const savedLanguage = localStorage.getItem("language") as Language;
-    if (savedLanguage && languages.includes(savedLanguage)) {
-      setLanguage(savedLanguage);
-      i18n.changeLanguage(savedLanguage);
-    } else {
-      // Try to match browser language
-      const browserLang = navigator.language.split("-")[0];
-      const matchedLang = languages.find(lang => lang === browserLang) || "en";
-      setLanguage(matchedLang as Language);
-      i18n.changeLanguage(matchedLang);
+    if (savedLanguage && languages.includes(savedLanguage as Language)) {
+      return savedLanguage;
     }
-  }, [i18n]);
+    // Try to match browser language
+    const browserLang = navigator.language.split("-")[0];
+    const matchedLang = languages.find(lang => lang === browserLang) || "en";
+    return matchedLang as Language;
+  });
+
+  // Effect to sync language with i18n when component mounts
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language]);
 
   const changeLanguage = (lang: Language) => {
     console.log("Changing language to:", lang);
@@ -70,14 +78,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  // Provide a default context if not inside provider (for development only)
-  if (context === undefined) {
+  if (!context) {
     console.warn("useLanguage is not within a LanguageProvider - using default values");
-    return {
-      language: "en" as Language,
-      changeLanguage: (lang: Language) => console.log(`Would change to ${lang}`),
-      languageOptions: languageOptions
-    };
+    return defaultContextValue;
   }
   return context;
 }
