@@ -49,6 +49,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [i18n]);
 
   const changeLanguage = (lang: Language) => {
+    console.log("Changing language to:", lang);
     setLanguage(lang);
     i18n.changeLanguage(lang);
     localStorage.setItem("language", lang);
