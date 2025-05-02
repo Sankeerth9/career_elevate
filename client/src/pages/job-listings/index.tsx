@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 import { jobListings as allJobListings, regionalJobStats } from "@/data/jobMarketData";
 import { states, careerAims } from "@shared/schema";
 import { 
