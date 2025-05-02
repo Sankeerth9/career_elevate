@@ -59,9 +59,12 @@ export default function EducationalPathways() {
   // Fetch educational pathways
   const { data: pathways, isLoading } = useQuery<EducationalPathway[]>({
     queryKey: ['/api/pathways', educationLevel],
+    queryFn: () => getEducationalPathways(educationLevel === 'all' ? undefined : educationLevel),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  console.log("Received pathways:", pathways); // Debug log
+  
   // Filter pathways by search query
   const filteredPathways = pathways?.filter((pathway: EducationalPathway) => {
     if (!searchQuery) return true;
