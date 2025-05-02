@@ -173,10 +173,21 @@ export default function EducationalPathways() {
             ) : filteredPathways && filteredPathways.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPathways.map((pathway: EducationalPathway) => (
-                  <Card key={pathway.id} className="hover:shadow-md transition-shadow">
+                  <Card 
+                    key={pathway.id} 
+                    className="hover:shadow-md transition-shadow overflow-hidden group"
+                  >
+                    <div 
+                      className={`h-2 w-full ${
+                        pathway.title.includes("Engineering") ? "bg-primary-600" : 
+                        pathway.title.includes("Medical") ? "bg-purple-600" : 
+                        pathway.title.includes("Law") ? "bg-green-600" :
+                        "bg-blue-600"
+                      }`}
+                    />
                     <CardHeader>
-                      <div className="flex items-center space-x-2">
-                        <div className={`p-2 rounded-md ${
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-3 rounded-lg ${
                           pathway.title.includes("Engineering") ? "bg-primary-100 text-primary-700" : 
                           pathway.title.includes("Medical") ? "bg-purple-100 text-purple-700" : 
                           pathway.title.includes("Law") ? "bg-green-100 text-green-700" :
@@ -184,33 +195,72 @@ export default function EducationalPathways() {
                         }`}>
                           {getPathwayIcon(pathway.title, pathway.icon)}
                         </div>
-                        <CardTitle>{pathway.title}</CardTitle>
+                        <div>
+                          <CardTitle className="text-xl">{pathway.title}</CardTitle>
+                          <CardDescription className="text-sm mt-1">{pathway.afterEducationLevel} education</CardDescription>
+                        </div>
                       </div>
-                      <CardDescription>{pathway.description}</CardDescription>
+                      <div className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                        {pathway.description}
+                      </div>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Entrance Exams:</span>
-                        <span className="text-sm font-medium text-right">{pathway.entranceExams?.join(", ")}</span>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground font-medium mb-1 flex items-center">
+                            <BookOpen className="h-3 w-3 mr-1 opacity-70" />
+                            ENTRANCE EXAMS
+                          </span>
+                          <span className="text-sm">
+                            {pathway.entranceExams?.slice(0, 3).join(", ")}
+                            {(pathway.entranceExams?.length || 0) > 3 && "..."}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground font-medium mb-1 flex items-center">
+                            <School className="h-3 w-3 mr-1 opacity-70" />
+                            TOP INSTITUTES
+                          </span>
+                          <span className="text-sm">
+                            {pathway.topInstitutes?.slice(0, 3).join(", ")}
+                            {(pathway.topInstitutes?.length || 0) > 3 && "..."}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Top Institutes:</span>
-                        <span className="text-sm font-medium text-right">{pathway.topInstitutes?.join(", ")}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Average Fees:</span>
-                        <span className="text-sm font-medium">{pathway.averageFees}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Job Prospects:</span>
-                        <span className="text-sm font-medium text-green-600 flex items-center">
-                          <TrendingUp className="h-4 w-4 mr-1" />
-                          {pathway.jobProspects}
-                        </span>
+                      
+                      <div className="pt-2 border-t">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center">
+                            <DollarSign className="h-4 w-4 text-muted-foreground mr-1" />
+                            <span className="text-sm">{pathway.averageFees}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <TrendingUp className={`h-4 w-4 mr-1 ${
+                              pathway.growthRate?.includes("28") ? "text-green-600" : 
+                              pathway.growthRate?.includes("20") ? "text-green-500" : 
+                              "text-amber-500"
+                            }`} />
+                            <span className={`text-sm font-medium ${
+                              pathway.growthRate?.includes("28") ? "text-green-600" : 
+                              pathway.growthRate?.includes("20") ? "text-green-500" : 
+                              "text-amber-500"
+                            }`}>
+                              {pathway.growthRate}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button asChild variant="outline" className="w-full">
+                      <Button 
+                        asChild 
+                        className={`w-full group-hover:bg-opacity-90 transition-all ${
+                          pathway.title.includes("Engineering") ? "bg-primary-600 hover:bg-primary-700" : 
+                          pathway.title.includes("Medical") ? "bg-purple-600 hover:bg-purple-700" : 
+                          pathway.title.includes("Law") ? "bg-green-600 hover:bg-green-700" :
+                          "bg-blue-600 hover:bg-blue-700"
+                        }`}
+                      >
                         <Link to={`/educational-pathways/${pathway.id}`}>
                           View Details
                         </Link>
