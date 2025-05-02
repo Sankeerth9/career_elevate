@@ -656,7 +656,7 @@ export default function CareerDetails() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" asChild>
-                    <Link to="/career-assessment">
+                    <Link to="/ai-recommendations">
                       Take Full Assessment
                     </Link>
                   </Button>

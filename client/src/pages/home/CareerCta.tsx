@@ -14,7 +14,7 @@ export default function CareerCta() {
         <p className="mt-4 text-lg leading-6 text-primary-200">
           {t("home.cta.description")}
         </p>
-        <Link to="/career-assessment">
+        <Link to="/ai-recommendations">
           <Button 
             size="lg"
             className="mt-8 bg-white text-primary-600 hover:bg-primary-50"

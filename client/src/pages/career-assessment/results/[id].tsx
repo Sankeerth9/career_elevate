@@ -157,7 +157,7 @@ export default function AssessmentResultsPage() {
           </CardHeader>
           <CardFooter>
             <Button className="w-full" asChild>
-              <Link to="/career-assessment">Take New Assessment</Link>
+              <Link to="/ai-recommendations">Take New Assessment</Link>
             </Button>
           </CardFooter>
         </Card>
@@ -272,7 +272,7 @@ export default function AssessmentResultsPage() {
                     </p>
                     <div className="mt-6">
                       <Button asChild>
-                        <Link to="/career-assessment">Retake Assessment</Link>
+                        <Link to="/ai-recommendations">Retake Assessment</Link>
                       </Button>
                     </div>
                   </div>

@@ -137,7 +137,7 @@ export default function ExploreCareers() {
             </div>
 
             <div className="mt-8 text-center">
-              <Link to="/career-assessment">
+              <Link to="/ai-recommendations">
                 <Button>
                   Take Career Assessment
                   <ArrowRight className="ml-2 h-5 w-5" />

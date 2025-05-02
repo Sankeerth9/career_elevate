@@ -15,7 +15,7 @@ export default function HeroSection() {
           {t("home.hero.description")}
         </p>
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
-          <Link to="/career-assessment">
+          <Link to="/ai-recommendations">
             <Button size="lg" variant="secondary">
               {t("home.hero.takeAssessment")}
             </Button>

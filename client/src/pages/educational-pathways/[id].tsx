@@ -618,7 +618,7 @@ export default function PathwayDetailPage() {
                       aligns with your interests and aptitude.
                     </p>
                     <Button asChild className="w-full">
-                      <Link to="/career-assessment">Start Assessment</Link>
+                      <Link to="/ai-recommendations">Start Assessment</Link>
                     </Button>
                   </CardContent>
                 </Card>
