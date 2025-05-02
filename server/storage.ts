@@ -226,9 +226,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    // Ensure non-nullable fields have default values
+    const userWithDefaults = {
+      ...insertUser,
+      fullName: insertUser.fullName ?? null,
+      phone: insertUser.phone ?? null,
+      educationLevel: insertUser.educationLevel ?? null,
+      state: insertUser.state ?? null,
+      languagePreference: insertUser.languagePreference ?? 'en'
+    };
+    
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(userWithDefaults)
       .returning();
     return user;
   }
@@ -243,9 +253,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCareerAssessment(insertAssessment: InsertCareerAssessment): Promise<CareerAssessment> {
+    // Ensure all nullable fields have proper defaults
+    const assessmentWithDefaults = {
+      ...insertAssessment,
+      state: insertAssessment.state ?? null,
+      userId: insertAssessment.userId ?? null,
+      careerAim: insertAssessment.careerAim ?? null,
+      budget: insertAssessment.budget ?? null,
+      entranceRank: insertAssessment.entranceRank ?? null, 
+      willingToRelocate: insertAssessment.willingToRelocate ?? null,
+      preferredDistance: insertAssessment.preferredDistance ?? null,
+      interests: insertAssessment.interests ?? null,
+      skills: insertAssessment.skills ?? null,
+      results: {} // Default empty object for results
+    };
+    
     const [assessment] = await db
       .insert(careerAssessments)
-      .values(insertAssessment)
+      .values(assessmentWithDefaults)
       .returning();
     return assessment;
   }
@@ -290,17 +315,35 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createEducationalPathway(insertPathway: InsertEducationalPathway): Promise<EducationalPathway> {
+    // Ensure all nullable fields have proper defaults
+    const pathwayWithDefaults = {
+      ...insertPathway,
+      entranceExams: insertPathway.entranceExams ?? null,
+      topInstitutes: insertPathway.topInstitutes ?? null,
+      averageFees: insertPathway.averageFees ?? null,
+      jobProspects: insertPathway.jobProspects ?? null,
+      growthRate: insertPathway.growthRate ?? null,
+      icon: insertPathway.icon ?? null
+    };
+    
     const [pathway] = await db
       .insert(educationalPathways)
-      .values(insertPathway)
+      .values(pathwayWithDefaults)
       .returning();
     return pathway;
   }
   
   async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    // Ensure all nullable fields have proper defaults
+    const paymentWithDefaults = {
+      ...insertPayment,
+      userId: insertPayment.userId ?? null,
+      transactionId: insertPayment.transactionId ?? null
+    };
+    
     const [payment] = await db
       .insert(payments)
-      .values(insertPayment)
+      .values(paymentWithDefaults)
       .returning();
     return payment;
   }
