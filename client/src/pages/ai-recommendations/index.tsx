@@ -132,9 +132,259 @@ export default function AIRecommendations() {
     }, 500);
   }, [toast]);
 
-  // Function to generate fallback recommendations based on education level
-  const getEducationBasedRecommendations = async (educationLevel: string) => {
-    const recommendations = [
+  // Function to generate recommendations based on education level and career aim
+  const getEducationBasedRecommendations = async (educationLevel: string, careerAim: string = "") => {
+    // Base recommendations by career aim
+    const recommendationsByCareerAim: {[key: string]: any[]} = {
+      "engineering": [
+        {
+          pathwayId: 1,
+          pathwayTitle: "Engineering & Manufacturing",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["Software Engineer", "Mechanical Engineer", "Civil Engineer"],
+          estimatedSalary: "₹6-12 LPA",
+          growthPotential: "28% growth over 5 years",
+          suggestedCourses: ["B.Tech", "B.E."],
+          entranceExams: "JEE Main, JEE Advanced, BITSAT"
+        },
+        {
+          pathwayId: 5,
+          pathwayTitle: "Computer Science & IT",
+          score: 88,
+          reason: "Strong alignment with engineering interests",
+          careerOptions: ["Software Developer", "Data Scientist", "Systems Architect"],
+          estimatedSalary: "₹8-15 LPA",
+          growthPotential: "30% growth over 5 years",
+          suggestedCourses: ["B.Tech in CS", "BCA", "B.Sc in IT"],
+          entranceExams: "JEE Main, COMEDK, BITSAT"
+        },
+        {
+          pathwayId: 7,
+          pathwayTitle: "Electronics & Communication",
+          score: 82,
+          reason: "Related technical field with strong job prospects",
+          careerOptions: ["Electronics Engineer", "VLSI Designer", "Network Engineer"],
+          estimatedSalary: "₹5-11 LPA",
+          growthPotential: "22% growth over 5 years",
+          suggestedCourses: ["B.Tech in ECE", "Diploma in Electronics"],
+          entranceExams: "JEE Main, COMEDK, KCET"
+        }
+      ],
+      "medical": [
+        {
+          pathwayId: 2,
+          pathwayTitle: "Medical & Healthcare",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["Doctor", "Dentist", "Pharmacist"],
+          estimatedSalary: "₹8-15 LPA",
+          growthPotential: "22% growth over 5 years",
+          suggestedCourses: ["MBBS", "BDS", "B.Pharm"],
+          entranceExams: "NEET, AIIMS"
+        },
+        {
+          pathwayId: 8,
+          pathwayTitle: "Allied Health Sciences",
+          score: 88,
+          reason: "Related healthcare field with good opportunities",
+          careerOptions: ["Physiotherapist", "Radiologist", "Medical Lab Technician"],
+          estimatedSalary: "₹4-8 LPA",
+          growthPotential: "25% growth over 5 years",
+          suggestedCourses: ["BPT", "B.Sc in MLT", "B.Sc in Radiology"],
+          entranceExams: "NEET, AIIMS, JIPMER"
+        },
+        {
+          pathwayId: 9,
+          pathwayTitle: "Nursing & Patient Care",
+          score: 82,
+          reason: "Growing healthcare sector with increasing demand",
+          careerOptions: ["Registered Nurse", "Nursing Supervisor", "Healthcare Administrator"],
+          estimatedSalary: "₹3.5-9 LPA",
+          growthPotential: "20% growth over 5 years",
+          suggestedCourses: ["B.Sc Nursing", "GNM"],
+          entranceExams: "Nursing Entrance Tests, NEET"
+        }
+      ],
+      "law": [
+        {
+          pathwayId: 3,
+          pathwayTitle: "Law & Legal Studies",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["Advocate", "Corporate Lawyer", "Legal Consultant"],
+          estimatedSalary: "₹5-15 LPA",
+          growthPotential: "18% growth over 5 years",
+          suggestedCourses: ["LLB", "BA-LLB", "BBA-LLB"],
+          entranceExams: "CLAT, AILET, LSAT"
+        },
+        {
+          pathwayId: 10,
+          pathwayTitle: "Corporate Governance",
+          score: 87,
+          reason: "Related field with legal connections",
+          careerOptions: ["Company Secretary", "Compliance Officer", "Legal Manager"],
+          estimatedSalary: "₹6-12 LPA",
+          growthPotential: "20% growth over 5 years",
+          suggestedCourses: ["CS", "LLB with Corporate Law"],
+          entranceExams: "CS Foundation, CLAT"
+        },
+        {
+          pathwayId: 11,
+          pathwayTitle: "International Relations",
+          score: 80,
+          reason: "Combines legal knowledge with diplomatic skills",
+          careerOptions: ["Diplomat", "Foreign Policy Advisor", "International Law Specialist"],
+          estimatedSalary: "₹7-18 LPA",
+          growthPotential: "15% growth over 5 years",
+          suggestedCourses: ["BA in International Relations", "LLB with International Law"],
+          entranceExams: "University-specific entrance exams"
+        }
+      ],
+      "commerce": [
+        {
+          pathwayId: 4,
+          pathwayTitle: "Business & Management",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["Business Analyst", "Marketing Manager", "HR Manager"],
+          estimatedSalary: "₹5-10 LPA",
+          growthPotential: "20% growth over 5 years",
+          suggestedCourses: ["BBA", "B.Com", "MBA"],
+          entranceExams: "CAT, XAT, MAT"
+        },
+        {
+          pathwayId: 12,
+          pathwayTitle: "Finance & Accounting",
+          score: 88,
+          reason: "Strong alignment with commerce background",
+          careerOptions: ["Chartered Accountant", "Financial Analyst", "Investment Banker"],
+          estimatedSalary: "₹7-15 LPA",
+          growthPotential: "22% growth over 5 years",
+          suggestedCourses: ["B.Com", "BBA in Finance", "CA"],
+          entranceExams: "CA Foundation, CMA Foundation"
+        },
+        {
+          pathwayId: 13,
+          pathwayTitle: "Digital Marketing",
+          score: 82,
+          reason: "Fast-growing field with business applications",
+          careerOptions: ["Digital Marketing Manager", "SEO Specialist", "Social Media Strategist"],
+          estimatedSalary: "₹4-12 LPA",
+          growthPotential: "35% growth over 5 years",
+          suggestedCourses: ["BBA in Digital Marketing", "B.Com with Digital Marketing"],
+          entranceExams: "University-specific entrance exams"
+        }
+      ],
+      "civilservice": [
+        {
+          pathwayId: 14,
+          pathwayTitle: "Civil Services",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["IAS Officer", "IPS Officer", "IRS Officer"],
+          estimatedSalary: "₹6-15 LPA + benefits",
+          growthPotential: "Structured career progression",
+          suggestedCourses: ["Any Bachelor's degree", "Public Administration courses"],
+          entranceExams: "UPSC Civil Services, State PSC"
+        },
+        {
+          pathwayId: 15,
+          pathwayTitle: "Public Policy & Administration",
+          score: 88,
+          reason: "Related field with government connections",
+          careerOptions: ["Policy Analyst", "Public Administrator", "Government Consultant"],
+          estimatedSalary: "₹5-12 LPA",
+          growthPotential: "15% growth over 5 years",
+          suggestedCourses: ["Public Administration", "Political Science", "Economics"],
+          entranceExams: "University-specific entrance exams"
+        },
+        {
+          pathwayId: 16,
+          pathwayTitle: "Defense & Armed Forces",
+          score: 82,
+          reason: "Service-oriented career with stability",
+          careerOptions: ["Army Officer", "Navy Officer", "Air Force Officer"],
+          estimatedSalary: "₹6-15 LPA + benefits",
+          growthPotential: "Structured career progression",
+          suggestedCourses: ["NDA", "Technical Entry Schemes"],
+          entranceExams: "NDA, CDS, AFCAT"
+        }
+      ],
+      "arts": [
+        {
+          pathwayId: 17,
+          pathwayTitle: "Design & Creative Arts",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["Graphic Designer", "UX/UI Designer", "Fashion Designer"],
+          estimatedSalary: "₹4-12 LPA",
+          growthPotential: "25% growth over 5 years",
+          suggestedCourses: ["B.Des", "BFA", "Animation courses"],
+          entranceExams: "UCEED, NIFT, NID"
+        },
+        {
+          pathwayId: 18,
+          pathwayTitle: "Media & Communication",
+          score: 88,
+          reason: "Related creative field with good opportunities",
+          careerOptions: ["Journalist", "Content Creator", "Public Relations Specialist"],
+          estimatedSalary: "₹3.5-10 LPA",
+          growthPotential: "18% growth over 5 years",
+          suggestedCourses: ["BMM", "BA in Journalism", "Mass Communication"],
+          entranceExams: "IIMC, XIC, ACJ"
+        },
+        {
+          pathwayId: 19,
+          pathwayTitle: "Performing Arts",
+          score: 82,
+          reason: "Creative expression with growing industry demand",
+          careerOptions: ["Actor", "Dancer", "Music Producer"],
+          estimatedSalary: "Variable (₹3-20+ LPA)",
+          growthPotential: "Project-dependent growth",
+          suggestedCourses: ["BPA", "Music courses", "Theater programs"],
+          entranceExams: "Institution-specific auditions and entrance tests"
+        }
+      ],
+      "esports": [
+        {
+          pathwayId: 20,
+          pathwayTitle: "Gaming & Esports",
+          score: 95,
+          reason: "Perfect match for your selected career aim",
+          careerOptions: ["Professional Gamer", "Game Developer", "Esports Manager"],
+          estimatedSalary: "₹3-15 LPA",
+          growthPotential: "40% growth over 5 years",
+          suggestedCourses: ["Game Design", "Computer Science", "Animation"],
+          entranceExams: "Institution-specific entrance tests"
+        },
+        {
+          pathwayId: 21,
+          pathwayTitle: "Digital Content Creation",
+          score: 88,
+          reason: "Complementary to gaming industry",
+          careerOptions: ["Gaming Streamer", "Content Creator", "YouTuber"],
+          estimatedSalary: "Variable (₹2-20+ LPA)",
+          growthPotential: "Platform and audience dependent",
+          suggestedCourses: ["Digital Media", "Video Production", "Communication"],
+          entranceExams: "Institution-specific entrance tests"
+        },
+        {
+          pathwayId: 22,
+          pathwayTitle: "Technology & Animation",
+          score: 82,
+          reason: "Technical aspects of gaming industry",
+          careerOptions: ["3D Animator", "Game Artist", "Technical Artist"],
+          estimatedSalary: "₹4-14 LPA",
+          growthPotential: "28% growth over 5 years",
+          suggestedCourses: ["Animation", "3D Modeling", "Computer Graphics"],
+          entranceExams: "NID, MAAC, Arena"
+        }
+      ]
+    };
+    
+    // Default recommendations if career aim not specified or not found
+    const defaultRecommendations = [
       {
         pathwayId: 1,
         pathwayTitle: "Engineering & Manufacturing",
@@ -159,9 +409,20 @@ export default function AIRecommendations() {
       },
       {
         pathwayId: 3,
-        pathwayTitle: "Business & Management",
+        pathwayTitle: "Law & Legal Studies",
         score: 72,
-        reason: "Aligns with your communication skills",
+        reason: "Aligns with analytical skills",
+        careerOptions: ["Advocate", "Corporate Lawyer", "Legal Consultant"],
+        estimatedSalary: "₹5-15 LPA",
+        growthPotential: "18% growth over 5 years",
+        suggestedCourses: ["LLB", "BA-LLB", "BBA-LLB"],
+        entranceExams: "CLAT, AILET, LSAT"
+      },
+      {
+        pathwayId: 4,
+        pathwayTitle: "Business & Management",
+        score: 70,
+        reason: "Versatile career options",
         careerOptions: ["Business Analyst", "Marketing Manager", "HR Manager"],
         estimatedSalary: "₹5-10 LPA",
         growthPotential: "20% growth over 5 years",
@@ -169,7 +430,14 @@ export default function AIRecommendations() {
         entranceExams: "CAT, XAT, MAT"
       }
     ];
-    return recommendations;
+    
+    // Return appropriate recommendations based on career aim
+    const normalizedCareerAim = careerAim.toLowerCase();
+    if (normalizedCareerAim && recommendationsByCareerAim[normalizedCareerAim]) {
+      return recommendationsByCareerAim[normalizedCareerAim];
+    }
+    
+    return defaultRecommendations;
   };
 
   // Submit handler - gets AI recommendations
@@ -208,7 +476,7 @@ export default function AIRecommendations() {
       console.error("Error:", error);
       
       // If API call fails, use education-based recommendations as a fallback
-      const fallbackRecommendations = await getEducationBasedRecommendations(data.educationLevel);
+      const fallbackRecommendations = await getEducationBasedRecommendations(data.educationLevel, data.careerAim);
       setRecommendations(fallbackRecommendations);
       setAssessment(data);
       
@@ -698,7 +966,7 @@ export default function AIRecommendations() {
                         <CardFooter>
                           <Button 
                             variant="outline" 
-                            className="w-full btn-gradient-warm"
+                            className="w-full btn-gradient-warm hover:shadow-none"
                             onClick={() => setSelectedPathway({
                               id: recommendation.pathwayId,
                               title: recommendation.pathwayTitle
