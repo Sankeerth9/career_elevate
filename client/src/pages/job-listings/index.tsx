@@ -270,9 +270,9 @@ export default function JobListingsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Any Location</SelectItem>
+                              <SelectItem key="any-location" value="any">Any Location</SelectItem>
                               {states.map((state) => (
-                                <SelectItem key={state} value={state}>
+                                <SelectItem key={state} value={state || "default_value"}>
                                   {t(`states.${state}`)}
                                 </SelectItem>
                               ))}
@@ -299,12 +299,12 @@ export default function JobListingsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Any Salary</SelectItem>
-                              <SelectItem value="0-300000">₹0 - ₹3 LPA</SelectItem>
-                              <SelectItem value="300000-600000">₹3 - ₹6 LPA</SelectItem>
-                              <SelectItem value="600000-1000000">₹6 - ₹10 LPA</SelectItem>
-                              <SelectItem value="1000000-1500000">₹10 - ₹15 LPA</SelectItem>
-                              <SelectItem value="1500000-">₹15+ LPA</SelectItem>
+                              <SelectItem key="any-salary" value="any">Any Salary</SelectItem>
+                              <SelectItem key="salary-1" value="0-300000">₹0 - ₹3 LPA</SelectItem>
+                              <SelectItem key="salary-2" value="300000-600000">₹3 - ₹6 LPA</SelectItem>
+                              <SelectItem key="salary-3" value="600000-1000000">₹6 - ₹10 LPA</SelectItem>
+                              <SelectItem key="salary-4" value="1000000-1500000">₹10 - ₹15 LPA</SelectItem>
+                              <SelectItem key="salary-5" value="1500000-max">₹15+ LPA</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
