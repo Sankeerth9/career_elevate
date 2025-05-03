@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
@@ -115,6 +115,8 @@ export default function CareerAssessment() {
       additionalInfo: "",
     },
   });
+
+  const educationLevel = form.watch("educationLevel");
 
   const nextTab = () => {
     if (activeTab === "step1") setActiveTab("step2");
@@ -246,6 +248,38 @@ export default function CareerAssessment() {
                         </FormItem>
                       )}
                     />
+
+                    {/* UG/PG action buttons */}
+                    {(educationLevel === "UG" || educationLevel === "PG") && (
+                      <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                        <Button
+                          type="button"
+                          className="w-full sm:w-auto"
+                          onClick={() => setLocation("/job-listings")}
+                        >
+                          Get a Job
+                        </Button>
+                        {educationLevel === "UG" ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            onClick={() => setLocation("/career-pathway")}
+                          >
+                            Pursue Masters
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                            onClick={() => setLocation("/career-pathway")}
+                          >
+                            Do Research
+                          </Button>
+                        )}
+                      </div>
+                    )}
 
                     <FormField
                       control={form.control}
