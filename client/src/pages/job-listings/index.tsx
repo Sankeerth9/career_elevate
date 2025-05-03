@@ -1,468 +1,655 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import { Link } from "wouter";
-import { jobListings as allJobListings, regionalJobStats } from "@/data/jobMarketData";
-import { states, careerAims } from "@shared/schema";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { searchJobs, getSuggestedJobKeywords, type JobListing, type JobFilters } from "./JobSearchAPI";
+import { useToast } from "@/hooks/use-toast";
+import { states } from "@shared/schema";
+
+// UI components
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Pagination } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Icons
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Building,
+  Briefcase,
   MapPin,
   DollarSign,
   Search,
+  Building,
   Calendar,
   ExternalLink,
   Filter,
-  TrendingUp,
-  Briefcase,
+  ChevronRight,
+  ChevronLeft,
   Clock,
-  PieChart,
-  CheckCircle
+  GraduationCap,
+  BookOpen,
 } from "lucide-react";
-import { formatDate, timeAgo } from "@/lib/utils";
 
-export default function JobListings() {
+// Form schema for job search
+const searchFormSchema = z.object({
+  keywords: z.string().min(1, "Please enter at least one keyword"),
+  location: z.string().optional(),
+  salary: z.string().optional(),
+});
+
+type SearchFormValues = z.infer<typeof searchFormSchema>;
+
+// Suggested searches based on career paths
+const suggestedSearches = [
+  { name: "Engineering", keywords: "software engineer, mechanical engineer" },
+  { name: "Healthcare", keywords: "nurse, healthcare, medical assistant" },
+  { name: "Business", keywords: "business analyst, marketing, finance" },
+  { name: "Entry Level", keywords: "entry level, trainee, internship" },
+  { name: "Remote", keywords: "remote work, work from home" },
+];
+
+export default function JobListingsPage() {
   const { t } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [location, setLocation] = useState("");
-  const [careerField, setCareerField] = useState("");
-  const [showRemoteOnly, setShowRemoteOnly] = useState(false);
-  const [recentlyPosted, setRecentlyPosted] = useState(false);
-  const [filteredJobs, setFilteredJobs] = useState(allJobListings);
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const { toast } = useToast();
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [jobListings, setJobListings] = useState<JobListing[]>([]);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [jobsPerPage] = useState(10);
+  const [activeJobDetail, setActiveJobDetail] = useState<JobListing | null>(null);
+  const [suggestedKeywords, setSuggestedKeywords] = useState<string[]>([]);
 
-  // Filter jobs when filters change
+  // Initialize form
+  const form = useForm<SearchFormValues>({
+    resolver: zodResolver(searchFormSchema),
+    defaultValues: {
+      keywords: "",
+      location: "",
+      salary: "",
+    },
+  });
+
+  // Load user preferences from localStorage to suggest relevant jobs
   useEffect(() => {
-    let filtered = allJobListings;
-    
-    // Search query filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(job => 
-        job.title.toLowerCase().includes(query) || 
-        job.company.toLowerCase().includes(query) ||
-        job.description.toLowerCase().includes(query)
-      );
+    const userPrefs = localStorage.getItem('userPreferences');
+    if (userPrefs) {
+      try {
+        const { educationLevel, careerAim } = JSON.parse(userPrefs);
+        if (educationLevel && careerAim) {
+          const keywords = getSuggestedJobKeywords(educationLevel, careerAim);
+          setSuggestedKeywords(keywords);
+          
+          // Auto-populate the form with the first keyword
+          if (keywords.length > 0 && !form.getValues('keywords')) {
+            form.setValue('keywords', keywords[0]);
+          }
+          
+          // Auto-search using first keyword
+          if (keywords.length > 0) {
+            searchJobsHandler({
+              keywords: keywords[0],
+              location: "",
+              salary: ""
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing user preferences:", error);
+      }
     }
+  }, []);
+
+  const searchJobsHandler = async (data: SearchFormValues) => {
+    setIsLoading(true);
+    setActiveJobDetail(null);
     
-    // Location filter
-    if (location) {
-      filtered = filtered.filter(job => job.location.toLowerCase().includes(location.toLowerCase()));
-    }
-    
-    // Career field filter
-    if (careerField) {
-      filtered = filtered.filter(job => {
-        if (careerField === 'engineering') return job.title.toLowerCase().includes('engineer') || job.title.toLowerCase().includes('developer');
-        if (careerField === 'medical') return job.title.toLowerCase().includes('doctor') || job.title.toLowerCase().includes('nurse') || job.title.toLowerCase().includes('health');
-        if (careerField === 'law') return job.title.toLowerCase().includes('lawyer') || job.title.toLowerCase().includes('legal');
-        if (careerField === 'commerce') return job.title.toLowerCase().includes('finance') || job.title.toLowerCase().includes('account');
-        if (careerField === 'civilservice') return job.title.toLowerCase().includes('officer') || job.title.toLowerCase().includes('government');
-        return true;
+    try {
+      const filters: JobFilters = {
+        keywords: data.keywords,
+        location: data.location,
+        salary: data.salary,
+        page: currentPage,
+        limit: jobsPerPage
+      };
+      
+      const result = await searchJobs(filters);
+      
+      setJobListings(result.jobs);
+      setTotalJobs(result.totalCount);
+      
+      if (result.jobs.length === 0) {
+        toast({
+          title: "No jobs found",
+          description: "Try different keywords or location",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Jobs Found",
+          description: `Found ${result.totalCount} jobs matching your criteria`,
+        });
+      }
+    } catch (error) {
+      console.error("Job search error:", error);
+      toast({
+        title: "Search Error",
+        description: "Failed to fetch job listings. Please try again.",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Remote filter
-    if (showRemoteOnly) {
-      filtered = filtered.filter(job => job.workMode.toLowerCase() === 'remote');
-    }
-    
-    // Recently posted filter (within last 14 days)
-    if (recentlyPosted) {
-      const twoWeeksAgo = new Date();
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-      filtered = filtered.filter(job => new Date(job.postedDate) >= twoWeeksAgo);
-    }
-    
-    setFilteredJobs(filtered);
-  }, [searchQuery, location, careerField, showRemoteOnly, recentlyPosted]);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const currentFilters = form.getValues();
+    searchJobsHandler(currentFilters);
+  };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+  
+  const handleSuggestedSearch = (keywords: string) => {
+    form.setValue('keywords', keywords);
+    searchJobsHandler({ keywords, location: "", salary: "" });
+  };
+
+  const onSubmit = (data: SearchFormValues) => {
+    setCurrentPage(1);
+    searchJobsHandler(data);
+  };
 
   return (
     <>
       <Helmet>
         <title>Job Listings | {t("appName")}</title>
-        <meta name="description" content="Browse job listings tailored to your skills and location" />
+        <meta
+          name="description"
+          content="Find jobs that match your skills, education, and career goals"
+        />
       </Helmet>
 
       <div className="bg-primary-700 pt-8 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Job Listings
-          </h1>
-          <p className="mt-3 text-xl text-primary-200">
-            Discover employment opportunities matched to your skills and educational background
+          <div className="flex items-center space-x-2 mb-4">
+            <Briefcase className="h-8 w-8 text-primary-200" />
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Job Listings
+            </h1>
+          </div>
+          <p className="mt-3 text-xl text-primary-200 max-w-3xl">
+            Find job opportunities that match your skills, education level, and career interests.
+            Apply directly or save positions for later.
           </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Quick Filters */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search job title, company, or keywords..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-                className="md:w-auto w-full"
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-              </Button>
-              <Button 
-                className="md:w-auto w-full"
-                onClick={() => {
-                  setSearchQuery("");
-                  setLocation("");
-                  setCareerField("");
-                  setShowRemoteOnly(false);
-                  setRecentlyPosted(false);
-                }}
-              >
-                Search Jobs
-              </Button>
-            </div>
-
-            {/* Expanded Filters */}
-            {isFilterExpanded && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="location" className="block text-sm font-medium mb-1">
-                    Location
-                  </label>
-                  <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger id="location">
-                      <SelectValue placeholder="All locations" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All locations</SelectItem>
-                      <SelectItem value="bangalore">Bangalore</SelectItem>
-                      <SelectItem value="hyderabad">Hyderabad</SelectItem>
-                      <SelectItem value="mumbai">Mumbai</SelectItem>
-                      <SelectItem value="delhi">Delhi</SelectItem>
-                      <SelectItem value="chennai">Chennai</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label htmlFor="careerField" className="block text-sm font-medium mb-1">
-                    Career Field
-                  </label>
-                  <Select value={careerField} onValueChange={setCareerField}>
-                    <SelectTrigger id="careerField">
-                      <SelectValue placeholder="All fields" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All fields</SelectItem>
-                      {careerAims.map((aim) => (
-                        <SelectItem key={aim} value={aim}>
-                          {t(`careerAims.${aim}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="remoteOnly" 
-                      checked={showRemoteOnly} 
-                      onCheckedChange={(checked) => 
-                        setShowRemoteOnly(checked as boolean)
-                      } 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column: Search form and filters */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Search className="mr-2 h-5 w-5" />
+                  Search Jobs
+                </CardTitle>
+                <CardDescription>
+                  Filter jobs based on your preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="keywords"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Keywords</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Job title, skills, or company" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Enter job title, skills, or companies
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    <label
-                      htmlFor="remoteOnly"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Remote jobs only
-                    </label>
-                  </div>
+
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Location</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select location (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Any Location</SelectItem>
+                              {states.map((state) => (
+                                <SelectItem key={state} value={state}>
+                                  {t(`states.${state}`)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="salary"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Salary Range</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select salary range (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Any Salary</SelectItem>
+                              <SelectItem value="0-300000">₹0 - ₹3 LPA</SelectItem>
+                              <SelectItem value="300000-600000">₹3 - ₹6 LPA</SelectItem>
+                              <SelectItem value="600000-1000000">₹6 - ₹10 LPA</SelectItem>
+                              <SelectItem value="1000000-1500000">₹10 - ₹15 LPA</SelectItem>
+                              <SelectItem value="1500000-">₹15+ LPA</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Searching..." : "Search Jobs"}
+                    </Button>
+                  </form>
+                </Form>
+
+                {/* Suggested searches based on your career assessments */}
+                <div className="mt-8">
+                  <h3 className="text-lg font-medium mb-4 flex items-center">
+                    <GraduationCap className="h-5 w-5 mr-2 text-primary" />
+                    Suggested Career Searches
+                  </h3>
                   
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="recentlyPosted" 
-                      checked={recentlyPosted} 
-                      onCheckedChange={(checked) => 
-                        setRecentlyPosted(checked as boolean)
-                      } 
-                    />
-                    <label
-                      htmlFor="recentlyPosted"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Posted in last 14 days
-                    </label>
+                  {suggestedKeywords.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {suggestedKeywords.map((keyword, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="outline" 
+                          className="cursor-pointer hover:bg-secondary/10"
+                          onClick={() => handleSuggestedSearch(keyword)}
+                        >
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      Complete a career assessment to get personalized job suggestions.
+                    </div>
+                  )}
+                </div>
+
+                {/* Popular searches */}
+                <div className="mt-8">
+                  <h3 className="text-lg font-medium mb-4">Popular Searches</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedSearches.map((search, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="secondary" 
+                        className="cursor-pointer"
+                        onClick={() => handleSuggestedSearch(search.keywords)}
+                      >
+                        {search.name}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Job Listings */}
-          <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">
-              {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Found
-            </h2>
-
-            {filteredJobs.length > 0 ? (
-              <div className="space-y-4">
-                {filteredJobs.map((job) => (
-                  <Card key={job.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-0">
-                      <div className="p-6">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <h3 className="text-xl font-semibold text-primary-600">{job.title}</h3>
-                            <div className="flex items-center mt-1">
-                              <Building className="h-4 w-4 text-muted-foreground mr-1" />
-                              <span className="text-sm text-muted-foreground">{job.company}</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap mt-2 md:mt-0 gap-1">
-                            <Badge variant="outline" className="bg-primary-50 text-primary-700">
-                              {job.jobType}
-                            </Badge>
-                            <Badge variant="outline" className={
-                              job.workMode === "Remote" 
-                                ? "bg-green-50 text-green-700" 
-                                : job.workMode === "Hybrid"
-                                ? "bg-blue-50 text-blue-700"
-                                : "bg-orange-50 text-orange-700"
-                            }>
-                              {job.workMode}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 text-muted-foreground mr-1" />
-                            <span className="text-sm">{job.location}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <DollarSign className="h-4 w-4 text-muted-foreground mr-1" />
-                            <span className="text-sm">{job.salary}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-muted-foreground mr-1" />
-                            <span className="text-sm">{timeAgo(job.postedDate)}</span>
-                          </div>
-                        </div>
-                        
-                        <p className="mt-3 text-sm text-muted-foreground">
-                          {job.description}
-                        </p>
-                      </div>
-                      
-                      <div className="px-6 py-4 bg-muted/20 border-t flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          Posted on {formatDate(job.postedDate)}
-                        </span>
-                        <Button asChild>
-                          <Link to={`/job-listings/${job.id}`}>
-                            View Details
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="bg-muted/20">
-                <CardContent className="flex flex-col items-center justify-center py-10">
-                  <Search className="h-10 w-10 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No jobs found</h3>
-                  <p className="text-muted-foreground text-center mt-2">
-                    Try adjusting your search criteria or filters to see more results.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setLocation("");
-                      setCareerField("");
-                      setShowRemoteOnly(false);
-                      setRecentlyPosted(false);
-                    }}
-                  >
-                    Clear All Filters
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Sidebar with Job Market Insights */}
-          <div className="space-y-6">
+          {/* Right column: Job listings and details */}
+          <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <PieChart className="mr-2 h-5 w-5" />
-                  Regional Job Market Insights
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="flex items-center">
+                    <Briefcase className="mr-2 h-5 w-5 text-primary" />
+                    {totalJobs > 0 ? `${totalJobs} Jobs Found` : "Job Listings"}
+                  </CardTitle>
+                  
+                  {isLoading && (
+                    <Badge variant="outline">
+                      <Clock className="mr-1 h-4 w-4 animate-spin" />
+                      Searching...
+                    </Badge>
+                  )}
+                </div>
+                
+                <CardDescription>
+                  {jobListings.length > 0 
+                    ? "Click on a job to view details" 
+                    : "Search for jobs to see listings"}
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
-                  {Object.entries(regionalJobStats).map(([region, stats], index) => (
-                    <AccordionItem key={region} value={region}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex justify-between items-center w-full pr-4">
-                          <span>{region}</span>
-                          <Badge variant="outline" className="bg-green-50 text-green-700">
-                            {stats.growthRate}
-                          </Badge>
+              
+              <CardContent>
+                {isLoading ? (
+                  // Loading skeleton
+                  <div className="space-y-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Card key={i} className="overflow-hidden">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-2/3 mb-4" />
+                          <Skeleton className="h-4 w-1/3 mb-2" />
+                          <Skeleton className="h-4 w-1/4 mb-4" />
+                          <Skeleton className="h-20 w-full" />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2 pt-2">
-                          <div>
-                            <p className="text-sm font-medium">Top Sectors:</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {stats.topSectors.map((sector, idx) => (
-                                <Badge key={idx} variant="outline">
-                                  {sector}
-                                </Badge>
-                              ))}
+                      </Card>
+                    ))}
+                  </div>
+                ) : jobListings.length > 0 ? (
+                  <div>
+                    <Tabs defaultValue="list" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="list">Job Listings</TabsTrigger>
+                        <TabsTrigger value="details" disabled={!activeJobDetail}>
+                          Job Details
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="list" className="mt-0">
+                        <div className="space-y-4">
+                          {jobListings.map((job) => (
+                            <Card 
+                              key={job.id} 
+                              className={`overflow-hidden cursor-pointer hover:shadow-md transition-shadow ${
+                                activeJobDetail?.id === job.id ? 'border-primary/50 shadow-md' : ''
+                              }`}
+                              onClick={() => setActiveJobDetail(job)}
+                            >
+                              <div className="p-6">
+                                <h3 className="text-xl font-semibold mb-2 text-primary-700">
+                                  {job.title}
+                                </h3>
+                                
+                                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
+                                  {job.company && (
+                                    <span className="flex items-center">
+                                      <Building className="h-4 w-4 mr-1" />
+                                      {job.company}
+                                    </span>
+                                  )}
+                                  
+                                  {job.location && (
+                                    <span className="flex items-center">
+                                      <MapPin className="h-4 w-4 mr-1" />
+                                      {job.location}
+                                    </span>
+                                  )}
+                                  
+                                  {job.salary && (
+                                    <span className="flex items-center">
+                                      <DollarSign className="h-4 w-4 mr-1" />
+                                      {job.salary}
+                                    </span>
+                                  )}
+                                  
+                                  {job.updated && (
+                                    <span className="flex items-center">
+                                      <Calendar className="h-4 w-4 mr-1" />
+                                      {formatDate(job.updated)}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                <p className="text-sm line-clamp-3 mb-3">
+                                  {job.description}
+                                </p>
+                                
+                                <div className="flex justify-between items-center">
+                                  <div className="flex flex-wrap gap-2">
+                                    {job.type && (
+                                      <Badge variant="outline">
+                                        {job.type}
+                                      </Badge>
+                                    )}
+                                    {job.source && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {job.source}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(job.link, '_blank');
+                                    }}
+                                  >
+                                    View <ExternalLink className="ml-1 h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                        
+                        {/* Pagination */}
+                        {totalJobs > jobsPerPage && (
+                          <div className="flex justify-center mt-6">
+                            <nav className="flex items-center gap-1">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </Button>
+                              
+                              {[...Array(Math.min(5, Math.ceil(totalJobs / jobsPerPage)))].map((_, i) => {
+                                const page = i + 1;
+                                return (
+                                  <Button
+                                    key={page}
+                                    variant={currentPage === page ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => handlePageChange(page)}
+                                  >
+                                    {page}
+                                  </Button>
+                                );
+                              })}
+                              
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage >= Math.ceil(totalJobs / jobsPerPage)}
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </nav>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="details" className="mt-0">
+                        {activeJobDetail && (
+                          <div className="space-y-6">
+                            <div>
+                              <h2 className="text-2xl font-bold text-primary-800 mb-2">
+                                {activeJobDetail.title}
+                              </h2>
+                              
+                              <div className="flex flex-wrap items-center gap-4 mb-4">
+                                {activeJobDetail.company && (
+                                  <div className="flex items-center">
+                                    <Building className="h-5 w-5 mr-2 text-muted-foreground" />
+                                    <span className="font-medium">{activeJobDetail.company}</span>
+                                  </div>
+                                )}
+                                
+                                {activeJobDetail.location && (
+                                  <div className="flex items-center">
+                                    <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
+                                    <span>{activeJobDetail.location}</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                {activeJobDetail.salary && (
+                                  <div className="bg-muted/50 p-3 rounded-lg">
+                                    <div className="flex items-center mb-1">
+                                      <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                                      <span className="font-medium">Salary Range</span>
+                                    </div>
+                                    <p>{activeJobDetail.salary}</p>
+                                  </div>
+                                )}
+                                
+                                {activeJobDetail.updated && (
+                                  <div className="bg-muted/50 p-3 rounded-lg">
+                                    <div className="flex items-center mb-1">
+                                      <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+                                      <span className="font-medium">Posted Date</span>
+                                    </div>
+                                    <p>{formatDate(activeJobDetail.updated)}</p>
+                                  </div>
+                                )}
+                                
+                                {activeJobDetail.type && (
+                                  <div className="bg-muted/50 p-3 rounded-lg">
+                                    <div className="flex items-center mb-1">
+                                      <Briefcase className="h-5 w-5 mr-2 text-purple-600" />
+                                      <span className="font-medium">Job Type</span>
+                                    </div>
+                                    <p>{activeJobDetail.type}</p>
+                                  </div>
+                                )}
+                                
+                                {activeJobDetail.source && (
+                                  <div className="bg-muted/50 p-3 rounded-lg">
+                                    <div className="flex items-center mb-1">
+                                      <BookOpen className="h-5 w-5 mr-2 text-orange-600" />
+                                      <span className="font-medium">Source</span>
+                                    </div>
+                                    <p>{activeJobDetail.source}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <Separator />
+                            
+                            <div>
+                              <h3 className="text-xl font-semibold mb-4">Job Description</h3>
+                              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: activeJobDetail.description }} />
+                            </div>
+                            
+                            <Separator />
+                            
+                            <div className="flex justify-between items-center">
+                              <Button
+                                variant="outline"
+                                onClick={() => setActiveJobDetail(null)}
+                              >
+                                Back to Listings
+                              </Button>
+                              
+                              <Button 
+                                onClick={() => window.open(activeJobDetail.link, '_blank')}
+                              >
+                                Apply Now <ExternalLink className="ml-2 h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Avg. Salary Range:</span>
-                            <span className="text-sm font-medium">{stats.averageSalary}</span>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-xl font-medium mb-2">No Jobs Found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Search for jobs using the form or try one of our suggested searches.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {suggestedSearches.slice(0, 3).map((search, index) => (
+                        <Button 
+                          key={index} 
+                          variant="outline"
+                          onClick={() => handleSuggestedSearch(search.keywords)}
+                        >
+                          Search {search.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <TrendingUp className="mr-2 h-5 w-5" />
-                  Trending Job Categories
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center">
-                      <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Data Science
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">+35%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center">
-                      <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                      AI & ML
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">+42%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center">
-                      <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Healthcare
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">+28%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center">
-                      <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Digital Marketing
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">+25%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="flex items-center">
-                      <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Renewable Energy
-                    </span>
-                    <Badge className="bg-green-100 text-green-800">+22%</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <Clock className="mr-2 h-5 w-5" />
-                  Job Search Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm">Tailor your resume to each job application</span>
-                  </li>
-                  <li className="flex">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm">Use keywords from the job description</span>
-                  </li>
-                  <li className="flex">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm">Research the company before interviews</span>
-                  </li>
-                  <li className="flex">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm">Follow up after submitting applications</span>
-                  </li>
-                  <li className="flex">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-sm">Upskill in areas relevant to your target role</span>
-                  </li>
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/ai-recommendations">
-                    Take Career Assessment
-                  </Link>
-                </Button>
-              </CardFooter>
             </Card>
           </div>
         </div>
