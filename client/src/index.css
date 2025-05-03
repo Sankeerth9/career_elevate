@@ -185,8 +185,36 @@
   @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl;
 }
 
+.glass-card-colored {
+  @apply bg-gradient-to-br from-primary/10 to-secondary/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl;
+}
+
 .text-gradient {
   @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500;
+}
+
+.text-gradient-warm {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-red-500;
+}
+
+.text-gradient-cool {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-400;
+}
+
+.btn-gradient {
+  @apply bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all duration-300;
+}
+
+.btn-gradient-warm {
+  @apply bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transition-all duration-300;
+}
+
+.card-hover-effect {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+.border-gradient {
+  @apply relative before:absolute before:inset-0 before:p-[1px] before:rounded-xl before:bg-gradient-to-r before:from-primary before:to-secondary before:-z-10;
 }
 
 /* Language switcher transitions */
