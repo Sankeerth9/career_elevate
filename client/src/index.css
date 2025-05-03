@@ -13,16 +13,27 @@
   --card-foreground: 20 14.3% 4.1%;
   --border: 20 5.9% 90%;
   --input: 20 5.9% 90%;
-  --primary: 207 90% 54%;
+  
+  /* More vibrant primary colors */
+  --primary: 207 90% 50%;
   --primary-foreground: 211 100% 99%;
-  --secondary: 60 4.8% 95.9%;
-  --secondary-foreground: 24 9.8% 10%;
-  --accent: 60 4.8% 95.9%;
-  --accent-foreground: 24 9.8% 10%;
+  
+  /* More colorful secondary and accent colors */
+  --secondary: 280 70% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 25 95% 50%;
+  --accent-foreground: 0 0% 100%;
+  
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
   --ring: 20 14.3% 4.1%;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
+  
+  /* Additional custom colors */
+  --success: 142 70% 45%;
+  --info: 199 90% 60%;
+  --warning: 35 95% 60%;
+  --highlight: 320 80% 50%;
 }
 
 .dark {
@@ -36,16 +47,25 @@
   --card-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
-  --primary: 207 90% 54%;
+  
+  /* Enhanced dark mode colors */
+  --primary: 207 90% 60%;
   --primary-foreground: 211 100% 99%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --secondary: 280 70% 60%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 25 95% 55%;
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 0 62.8% 40%;
   --destructive-foreground: 0 0% 98%;
   --ring: 240 4.9% 83.9%;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
+  
+  /* Additional custom colors for dark mode */
+  --success: 142 70% 50%;
+  --info: 199 90% 65%;
+  --warning: 35 95% 65%;
+  --highlight: 320 80% 60%;
 }
 
 @layer base {
@@ -83,12 +103,74 @@
   }
 }
 
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
 .animate-float-delay {
   animation: float-delay 8s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 25%, 
+    rgba(255,255,255,0.2) 50%, 
+    rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s infinite;
 }
 
 /* Gradient background */
