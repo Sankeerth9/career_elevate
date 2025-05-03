@@ -1,7 +1,6 @@
 // JobSearchAPI.ts - API service for job search functionality
 
-const API_KEY = "14dyYM46voA84isX7xcbXg";
-const BASE_URL = "https://jooble.org/api";
+// No API key or BASE_URL needed in frontend now
 
 export interface JobFilters {
   keywords: string;
@@ -30,24 +29,18 @@ export interface JobSearchResponse {
 }
 
 /**
- * Search for jobs using the Jooble API
+ * Search for jobs using the backend proxy API
  * @param filters - Search filters
  * @returns Promise with job listings
  */
 export async function searchJobs(filters: JobFilters): Promise<JobSearchResponse> {
   try {
-    const response = await fetch(`${BASE_URL}/${API_KEY}`, {
+    const response = await fetch('/api/jobs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        keywords: filters.keywords,
-        location: filters.location || "",
-        salary: filters.salary || "",
-        page: filters.page || 1,
-        limit: filters.limit || 20
-      })
+      body: JSON.stringify(filters)
     });
 
     if (!response.ok) {
@@ -55,7 +48,6 @@ export async function searchJobs(filters: JobFilters): Promise<JobSearchResponse
     }
 
     const data = await response.json();
-    
     return {
       totalCount: data.totalCount || 0,
       jobs: data.jobs || []

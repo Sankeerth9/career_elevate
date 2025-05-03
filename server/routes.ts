@@ -7,7 +7,6 @@ import { calculateFees } from "./services/feeCalculator";
 import { getCareerRecommendations } from "./services/careerRecommendation";
 import z from "zod";
 import MemoryStore from "memorystore";
-import { genAI, model } from "./services/gemini";
 
 const SessionStore = MemoryStore(session);
 
@@ -311,43 +310,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI-powered test recommendation endpoint
-  apiRouter.post("/test-ai-recommendation", async (req: Request, res: Response) => {
+  // Proxy endpoint for job search
+  apiRouter.post("/jobs", async (req, res) => {
     try {
-      // Sample assessment for testing
-      const sampleAssessment = {
-        id: 9999,
-        educationLevel: req.body.educationLevel || "12th",
-        state: req.body.state || "mh",
-        careerAim: req.body.careerAim || "engineering",
-        budget: req.body.budget || "medium",
-        preferredDistance: req.body.preferredDistance || "any",
-        interests: req.body.interests || ["technology", "science", "mathematics"],
-        skills: req.body.skills || ["analytical", "problem-solving", "teamwork"],
-        userId: null,
-        createdAt: new Date(),
-        results: null,
-        willingToRelocate: Boolean(req.body.willingToRelocate) || true,
-        entranceRank: "good"
-      };
-      
-      // Skip OpenAI call and directly use basic recommendations
-      // since we know OpenAI has quota exceeded error
-      console.log("Using basic recommendations directly");
-      const { getBasicRecommendations } = require('./services/careerRecommendation');
-      const recommendations = await getBasicRecommendations(sampleAssessment);
-      
-      res.json({
-        assessment: sampleAssessment,
-        recommendations,
-        source: "basic" // Indicate basic recommendations
+      const JOOBLE_API_KEY = process.env.JOOBLE_API_KEY || "14dyYM46voA84isX7xcbXg";
+      // Only send keywords and location to Jooble
+      const { keywords, location } = req.body;
+      const joobleBody = { keywords, location: location || "" };
+      const response = await fetch(`https://jooble.org/api/${JOOBLE_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(joobleBody)
       });
+      const rawText = await response.text();
+      console.log("Jooble raw response:", rawText);
+      try {
+        const data = JSON.parse(rawText);
+        res.json(data);
+      } catch (jsonErr) {
+        res.status(502).json({ message: "Jooble API did not return valid JSON", raw: rawText });
+      }
     } catch (error) {
-      console.error("Error generating recommendations:", error);
-      res.status(500).json({
-        message: "Failed to generate recommendations",
-        error: error instanceof Error ? error.message : String(error)
-      });
+      console.error("Job API proxy error:", error);
+      res.status(500).json({ message: "Failed to fetch jobs" });
     }
   });
 

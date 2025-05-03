@@ -1,6 +1,5 @@
 import { CareerAssessment } from "@shared/schema";
 import { storage } from "../storage";
-import { getAiCareerRecommendations, AiCareerRecommendation } from "./openai";
 
 export interface Recommendation {
   pathwayId: number;
@@ -29,23 +28,8 @@ export interface Recommendation {
  * Gets career recommendations based on user assessment using AI
  */
 export async function getCareerRecommendations(assessment: CareerAssessment): Promise<Recommendation[]> {
-  try {
-    // Get all educational pathways
-    const allPathways = await storage.getAllEducationalPathways();
-    
-    // Get AI-powered recommendations
-    const aiRecommendations = await getAiCareerRecommendations(assessment, allPathways);
-    
-    // Convert AI recommendations to standard recommendation format
-    const recommendations = convertAiRecommendationsToStandard(aiRecommendations);
-    
-    return recommendations;
-  } catch (error) {
-    console.error("Error getting AI career recommendations:", error);
-    
-    // Fallback to basic recommendations if AI fails
-    return getBasicRecommendations(assessment);
-  }
+  // Remove any OpenAI-related code or fallback logic
+  // ... existing code ...
 }
 
 /**

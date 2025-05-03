@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Award, BookOpen, Users } from "lucide-react";
+import { ArrowRight, Award } from "lucide-react";
 
 export default function HeroSection() {
   const { t } = useTranslation();
@@ -67,46 +67,15 @@ export default function HeroSection() {
             </div>
           </div>
           
-          {/* Hero image/illustration */}
+          {/* Hero image */}
           <div className="relative hidden md:block">
             <div className="absolute inset-0 bg-gradient-to-r from-primary-800 to-transparent z-10"></div>
-            <div className="relative z-20 bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10 shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-primary-300 to-blue-400 flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-lg">Career Advisor AI</h3>
-                  <p className="text-primary-200 text-sm">Personalized recommendations</p>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="bg-white/10 p-4 rounded-lg">
-                  <div className="text-sm text-white/80 mb-2">Based on your profile:</div>
-                  <div className="text-white font-medium">Software Development</div>
-                  <div className="mt-2 w-full bg-white/20 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full" style={{width: "85%"}}></div>
-                  </div>
-                  <div className="flex justify-between text-xs mt-1">
-                    <div className="text-primary-200">Match Score</div>
-                    <div className="text-white font-medium">85%</div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/10 p-4 rounded-lg">
-                  <div className="text-sm text-white/80 mb-2">Recommended Path:</div>
-                  <div className="text-white font-medium">Computer Science Degree</div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Users className="h-4 w-4 text-primary-300" />
-                    <span className="text-xs text-primary-200">12,000+ professionals</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-6 bg-gradient-to-r from-primary-500 to-blue-500 p-3 rounded-xl text-center text-white font-medium">
-                Discover Your Ideal Career Path
-              </div>
+            <div className="relative z-20">
+              <img 
+                src="/images/hero-image.jpg" 
+                alt="Career Guidance" 
+                className="w-full h-auto rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500"
+              />
             </div>
           </div>
         </div>

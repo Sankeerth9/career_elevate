@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 import { jest } from '@jest/globals';
-import './mocks/openai';
 import { storage } from '../storage';
 
 // Load environment variables
@@ -14,7 +13,7 @@ process.env.SESSION_COOKIE_NAME = 'career-path-session-test';
 process.env.SESSION_COOKIE_SECURE = 'false';
 process.env.SESSION_COOKIE_HTTPONLY = 'true';
 process.env.SESSION_COOKIE_SAMESITE = 'lax';
-process.env.OPENAI_API_KEY = 'test-key';
+process.env.GEMINI_API_KEY = 'test-key';
 
 // Seed educational pathways
 beforeAll(async () => {
