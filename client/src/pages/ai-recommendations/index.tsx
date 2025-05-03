@@ -639,10 +639,10 @@ export default function AIRecommendations() {
                         </CardContent>
                         <CardFooter>
                           <Button variant="outline" className="w-full btn-gradient-warm" asChild>
-                            <Link href={`/educational-pathways/${recommendation.pathwayId}?budget=${formData.budget || 'medium'}`}>
+                            <a href={`/educational-pathways/${recommendation.pathwayId}?budget=${assessment?.budget || 'medium'}`}>
                               View Pathway Details
                               <ChevronRight className="ml-1 h-4 w-4" />
-                            </Link>
+                            </a>
                           </Button>
                         </CardFooter>
                       </Card>
