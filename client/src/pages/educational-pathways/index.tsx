@@ -349,10 +349,10 @@ export default function EducationalPathways() {
                     <CardFooter>
                       <Button 
                         asChild 
-                        className={`w-full group-hover:bg-opacity-90 transition-all ${
-                          pathway.title.includes("Engineering") ? "bg-primary-600 hover:bg-primary-700" : 
+                        className={`w-full btn-gradient ${
+                          pathway.title.includes("Engineering") ? "btn-gradient" : 
                           pathway.title.includes("Medical") ? "bg-purple-600 hover:bg-purple-700" : 
-                          pathway.title.includes("Law") ? "bg-green-600 hover:bg-green-700" :
+                          pathway.title.includes("Law") ? "btn-gradient-warm" :
                           "bg-blue-600 hover:bg-blue-700"
                         }`}
                       >

@@ -638,11 +638,11 @@ export default function AIRecommendations() {
                           </div>
                         </CardContent>
                         <CardFooter>
-                          <Button variant="outline" className="w-full" asChild>
-                            <a href={`/educational-pathways/${recommendation.pathwayId}`}>
+                          <Button variant="outline" className="w-full btn-gradient-warm" asChild>
+                            <Link href={`/educational-pathways/${recommendation.pathwayId}?budget=${formData.budget || 'medium'}`}>
                               View Pathway Details
                               <ChevronRight className="ml-1 h-4 w-4" />
-                            </a>
+                            </Link>
                           </Button>
                         </CardFooter>
                       </Card>
