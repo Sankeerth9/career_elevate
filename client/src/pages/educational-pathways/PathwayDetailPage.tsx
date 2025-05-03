@@ -65,10 +65,19 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
   useEffect(() => {
     if (pathway && pathway.title) {
       // Extract career path from title
-      const careerPath = pathway.title.includes("Engineering") ? "Engineering" :
-                         pathway.title.includes("Medical") ? "Medical" :
-                         pathway.title.includes("Law") ? "Law" :
-                         pathway.title.includes("Business") ? "Business" : "Arts";
+      let careerPath = "Arts";
+      
+      if (pathway.title.includes("Engineering") || pathway.title.includes("Manufacturing")) {
+        careerPath = "Engineering";
+      } else if (pathway.title.includes("Medical") || pathway.title.includes("Healthcare")) {
+        careerPath = "Medical";
+      } else if (pathway.title.includes("Law") || pathway.title.includes("Legal")) {
+        careerPath = "Law";
+      } else if (pathway.title.includes("Business") || pathway.title.includes("Management") || pathway.title.includes("Commerce")) {
+        careerPath = "Business";
+      }
+      
+      console.log("Career path:", careerPath, "Budget:", budgetFilter);
       
       // Get filtered colleges
       const colleges = getCollegesByFilters(careerPath, budgetFilter);
@@ -360,12 +369,12 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
                           const exam = relevantExams.find(e => e.name === examName || examName.includes(e.name));
                           
                           return (
-                            <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start`}>
+                            <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start card-hover-effect glass-card-colored animate-pulse-slow`}>
                               <div className={`p-2 rounded-full ${colors.bgLight} ${colors.text} mr-4`}>
                                 <BookOpen className="h-5 w-5" />
                               </div>
                               <div className="flex-1">
-                                <h4 className="font-semibold text-lg">{examName}</h4>
+                                <h4 className="font-semibold text-lg text-gradient">{examName}</h4>
                                 <p className="text-muted-foreground text-sm mt-1">
                                   {exam ? exam.fullName : "Entrance examination"} for admission to top institutes
                                 </p>
@@ -379,7 +388,7 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
                                   
                                   {exam && (
                                     <div className="flex items-center ml-8">
-                                      <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs">
+                                      <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs border-gradient">
                                         {exam.examLevel.charAt(0).toUpperCase() + exam.examLevel.slice(1)} level
                                       </div>
                                     </div>
@@ -429,12 +438,12 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
                   <CardContent>
                     <div className="space-y-6">
                       {pathway.entranceExams?.map((exam, index) => (
-                        <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start`}>
+                        <div key={index} className={`p-4 border rounded-lg ${colors.border} flex items-start card-hover-effect glass-card animate-pulse-slow`}>
                           <div className={`p-2 rounded-full ${colors.bgLight} ${colors.text} mr-4`}>
                             <BookOpen className="h-5 w-5" />
                           </div>
                           <div>
-                            <h4 className="font-semibold text-lg">{exam}</h4>
+                            <h4 className="font-semibold text-lg text-gradient-warm">{exam}</h4>
                             <p className="text-muted-foreground text-sm mt-1">
                               National-level entrance examination for admission to top institutes
                             </p>
@@ -515,9 +524,9 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
                     {recommendedColleges.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {recommendedColleges.map((college) => (
-                          <Card key={college.id} className={`border ${colors.border}`}>
+                          <Card key={college.id} className={`border ${colors.border} card-hover-effect glass-card-colored animate-pulse-slow`}>
                             <CardHeader className="pb-2">
-                              <CardTitle className="text-base">{college.name}</CardTitle>
+                              <CardTitle className="text-base text-gradient">{college.name}</CardTitle>
                               <CardDescription className="text-xs flex items-center mt-1">
                                 <span className="inline-block w-2 h-2 rounded-full mr-1 bg-gray-400"></span>
                                 {college.location}
@@ -543,7 +552,7 @@ export default function PathwayDetailPage({ pathway }: { pathway: EducationalPat
                                 </div>
                                 
                                 <div className="pt-2 mt-2 border-t">
-                                  <Button variant="outline" size="sm" className="w-full" asChild>
+                                  <Button variant="outline" size="sm" className="w-full btn-gradient" asChild>
                                     <a href={college.websiteUrl} target="_blank" rel="noopener noreferrer">
                                       Visit Website
                                     </a>
