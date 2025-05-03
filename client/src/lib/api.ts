@@ -1,4 +1,4 @@
-import { EducationalPathway, CareerAssessment } from "@shared/schema";
+import { EducationalPathway, CareerAssessment, Payment } from "@shared/schema";
 import { queryClient } from "./queryClient";
 
 export async function getEducationalPathways(educationLevel?: string): Promise<EducationalPathway[]> {
@@ -58,6 +58,23 @@ export async function getAssessmentById(id: number): Promise<CareerAssessment> {
   
   if (!response.ok) {
     throw new Error('Failed to fetch assessment');
+  }
+  
+  return response.json();
+}
+
+export async function createPayment(paymentData: Omit<Payment, 'id' | 'userId' | 'createdAt'>): Promise<Payment> {
+  const response = await fetch('/api/payments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(paymentData),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to create payment');
   }
   
   return response.json();

@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CareerAssessment } from "@shared/schema";
 import dotenv from 'dotenv';
 import path from 'path';
@@ -6,13 +6,14 @@ import path from 'path';
 // Load environment variables from app.env
 dotenv.config({ path: path.resolve(process.cwd(), 'app.env') });
 
-// Initialize the OpenAI client
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error('Gemini API key is not set in environment variables');
+}
 
-// Use GPT-4 for best results
-const MODEL = "gpt-4";
+// Initialize the Gemini client
+export const genAI = new GoogleGenerativeAI(apiKey);
+export const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 export interface AiCareerRecommendation {
   pathwayId: number;
@@ -44,27 +45,13 @@ export async function getAiCareerRecommendations(
     // Format the prompt with the assessment data and available educational pathways
     const prompt = buildPrompt(assessment, availablePathways);
     
-    // Call OpenAI API for recommendations
-    const response = await openai.chat.completions.create({
-      model: MODEL,
-      messages: [
-        { 
-          role: "system", 
-          content: "You are an expert career counselor specializing in education and career paths in India. Your task is to analyze user assessment data and recommend appropriate educational pathways." 
-        },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-    });
-
+    // Call Gemini API for recommendations
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
     // Parse the response and return the recommendations
-    const content = response.choices[0].message.content;
-    if (!content) {
-      throw new Error("No content received from OpenAI");
-    }
-
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(text);
     return parsed.recommendations;
   } catch (error) {
     console.error("Error getting AI career recommendations:", error);
@@ -73,7 +60,7 @@ export async function getAiCareerRecommendations(
 }
 
 /**
- * Builds the prompt for the OpenAI API
+ * Builds the prompt for the Gemini API
  */
 function buildPrompt(assessment: CareerAssessment, availablePathways: any[]): string {
   const pathwayInfo = availablePathways.map(p => ({
@@ -141,4 +128,4 @@ For each recommendation:
 - Estimate time to employment after completing education
 - Include regional demand information for different parts of India
 `;
-}
+} 

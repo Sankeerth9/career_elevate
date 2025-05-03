@@ -1,6 +1,7 @@
 import { users, type User, type InsertUser, careerAssessments, type CareerAssessment, type InsertCareerAssessment, educationalPathways, type EducationalPathway, type InsertEducationalPathway, payments, type Payment, type InsertPayment } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import { hashPassword, verifyPassword } from "./utils/password";
 
 // Interface for storage operations
 export interface IStorage {
@@ -226,20 +227,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    // Ensure non-nullable fields have default values
-    const userWithDefaults = {
-      ...insertUser,
-      fullName: insertUser.fullName ?? null,
+    // Hash the password before storing
+    const hashedPassword = await hashPassword(insertUser.password);
+
+    // Map camelCase to snake_case for DB
+    const userWithHashedPassword = {
+      username: insertUser.username,
+      password: hashedPassword,
+      email: insertUser.email,
+      full_name: insertUser.fullName ?? null,
       phone: insertUser.phone ?? null,
-      educationLevel: insertUser.educationLevel ?? null,
+      education_level: insertUser.educationLevel ?? null,
       state: insertUser.state ?? null,
-      languagePreference: insertUser.languagePreference ?? 'en'
+      language_preference: insertUser.languagePreference ?? "en",
+      // created_at will be set by DB default
     };
-    
-    const [user] = await db
-      .insert(users)
-      .values(userWithDefaults)
+
+    const [user] = await db.insert(users)
+      .values(userWithHashedPassword)
       .returning();
+
     return user;
   }
   
@@ -370,6 +377,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(payments.id, id))
       .returning();
     return updatedPayment || undefined;
+  }
+
+  async verifyUserCredentials(username: string, password: string): Promise<User | undefined> {
+    const user = await this.getUserByUsername(username);
+    if (!user) return undefined;
+    
+    const isValid = await verifyPassword(password, user.password);
+    return isValid ? user : undefined;
   }
 
   // Seed educational pathways if they don't exist yet

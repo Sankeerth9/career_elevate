@@ -20,7 +20,9 @@ export async function setupDatabase() {
         "language_preference" TEXT DEFAULT 'en',
         "created_at" TIMESTAMP DEFAULT NOW()
       );
-      
+    `);
+    
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS "career_assessments" (
         "id" SERIAL PRIMARY KEY,
         "user_id" INTEGER REFERENCES "users"("id"),
@@ -36,7 +38,9 @@ export async function setupDatabase() {
         "results" JSON,
         "created_at" TIMESTAMP DEFAULT NOW()
       );
-      
+    `);
+    
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS "educational_pathways" (
         "id" SERIAL PRIMARY KEY,
         "title" TEXT NOT NULL,
@@ -49,7 +53,9 @@ export async function setupDatabase() {
         "growth_rate" TEXT,
         "icon" TEXT
       );
-      
+    `);
+    
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS "payments" (
         "id" SERIAL PRIMARY KEY,
         "user_id" INTEGER REFERENCES "users"("id"),

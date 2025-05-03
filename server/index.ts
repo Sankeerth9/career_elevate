@@ -2,10 +2,21 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupDatabase } from "./db-setup";
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load environment variables
+dotenv.config();
+
+export const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,42 +48,44 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  // Setup the database first
+// Setup error handling
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  res.status(status).json({ message });
+  throw err;
+});
+
+// Initialize database and routes
+export const initializeApp = async () => {
   try {
     await setupDatabase();
+    const server = await registerRoutes(app);
+    return server;
   } catch (error) {
-    console.error("Failed to setup database:", error);
+    console.error("Failed to initialize app:", error);
+    throw error;
   }
-  
-  const server = await registerRoutes(app);
+};
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+// Only start the server if this file is run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  (async () => {
+    const server = await initializeApp();
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+    const port = process.env.PORT || 3000;
+    server.listen(port, () => {
+      log(`serving on port ${port}`);
+    });
+  })();
+}

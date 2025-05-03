@@ -7,6 +7,7 @@ import { calculateFees } from "./services/feeCalculator";
 import { getCareerRecommendations } from "./services/careerRecommendation";
 import z from "zod";
 import MemoryStore from "memorystore";
+import { genAI, model } from "./services/gemini";
 
 const SessionStore = MemoryStore(session);
 
@@ -14,11 +15,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(
     session({
+      name: process.env.SESSION_COOKIE_NAME || 'career-path-session',
       cookie: { 
         maxAge: 86400000, // 24 hours
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'lax',
+        secure: process.env.SESSION_COOKIE_SECURE === 'true',
+        httpOnly: process.env.SESSION_COOKIE_HTTPONLY !== 'false',
+        sameSite: process.env.SESSION_COOKIE_SAMESITE as 'lax' | 'strict' | 'none' || 'lax',
       },
       store: new SessionStore({
         checkPeriod: 86400000, // prune expired entries every 24h
@@ -72,9 +74,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password required" });
       }
       
-      const user = await storage.getUserByUsername(username);
+      const user = await storage.verifyUserCredentials(username, password);
       
-      if (!user || user.password !== password) {
+      if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
@@ -345,6 +347,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         message: "Failed to generate recommendations",
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Add test endpoint for Gemini
+  apiRouter.get("/test-gemini", async (req, res) => {
+    try {
+      const result = await model.generateContent("Hello! Can you confirm this API is working?");
+      const response = await result.response;
+      const text = response.text();
+
+      res.json({
+        success: true,
+        message: text
+      });
+    } catch (error) {
+      console.error("Gemini API Error:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to connect to Gemini API"
       });
     }
   });
