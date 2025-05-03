@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { educationLevels, careerAims, states, budgetRanges } from "@shared/schema";
 import EducationBasedRecommendations from "./EducationBasedRecommendations";
+import PathwayExamDetails from "./PathwayExamDetails";
 import { useLocation, useRoute } from "wouter";
 
 import {
@@ -82,6 +83,10 @@ export default function AIRecommendations() {
   const [isLoading, setIsLoading] = useState(false);
   const [assessment, setAssessment] = useState<any>(null);
   const [_, setLocation] = useLocation();
+  const [selectedPathway, setSelectedPathway] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
 
   // Define interests and skills options
   const interestOptions = [
@@ -134,17 +139,31 @@ export default function AIRecommendations() {
     }, 500);
   }, [toast]);
 
-  // Submit handler - now redirects to educational pathways
+  // Submit handler - now gets AI recommendations
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      // Instead of calling AI endpoint, redirect to educational pathways with query parameters
+      // Call the API to get recommendations
+      const response = await apiRequest(
+        "POST",
+        "/api/test-ai-recommendation",
+        data
+      );
+      
+      if (!response.ok) {
+        throw new Error("Failed to get recommendations");
+      }
+      
+      const result = await response.json();
+      setRecommendations(result.recommendations || []);
+      setAssessment(data);
+      
       toast({
-        title: "Finding Educational Pathways",
-        description: "Redirecting you to educational pathways that match your profile...",
+        title: "Recommendations Ready",
+        description: "We've analyzed your profile and found matching career pathways.",
       });
       
-      // Store form data in local storage for accessing on the pathways page
+      // Store form data for future reference
       localStorage.setItem('userPreferences', JSON.stringify({
         educationLevel: data.educationLevel,
         budget: data.budget,
@@ -152,16 +171,17 @@ export default function AIRecommendations() {
         state: data.state
       }));
       
-      // Redirect to educational pathways
-      setTimeout(() => {
-        setLocation(`/educational-pathways?educationLevel=${data.educationLevel}&budget=${data.budget}`);
-      }, 1500);
-      
     } catch (error) {
       console.error("Error:", error);
+      
+      // If API call fails, use EducationBasedRecommendations as a fallback
+      const fallbackRecommendations = await EducationBasedRecommendations(data.educationLevel);
+      setRecommendations(fallbackRecommendations);
+      setAssessment(data);
+      
       toast({
-        title: "Error",
-        description: "Failed to process your request. Please try again later.",
+        title: "Using Fallback Recommendations",
+        description: "We're using default recommendations based on your education level.",
         variant: "destructive",
       });
     } finally {
@@ -179,23 +199,32 @@ export default function AIRecommendations() {
         />
       </Helmet>
 
-      <div className="bg-primary-700 pt-8 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center space-x-2 mb-4">
-            <Brain className="h-8 w-8 text-primary-200" />
-            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              AI Career Recommendations
-            </h1>
+      {selectedPathway ? (
+        <PathwayExamDetails
+          pathwayId={selectedPathway.id}
+          pathwayTitle={selectedPathway.title}
+          budget={assessment?.budget || 'medium'}
+          onBack={() => setSelectedPathway(null)}
+        />
+      ) : (
+        <>
+          <div className="bg-primary-700 pt-8 pb-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center space-x-2 mb-4">
+                <Brain className="h-8 w-8 text-primary-200" />
+                <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                  AI Career Recommendations
+                </h1>
+              </div>
+              <p className="mt-3 text-xl text-primary-200 max-w-3xl">
+                Our AI-powered system analyzes your profile, skills, and preferences to suggest ideal career pathways tailored 
+                specifically for you. Get personalized guidance for your future.
+              </p>
+            </div>
           </div>
-          <p className="mt-3 text-xl text-primary-200 max-w-3xl">
-            Our AI-powered system analyzes your profile, skills, and preferences to suggest ideal career pathways tailored 
-            specifically for you. Get personalized guidance for your future.
-          </p>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Form Column */}
           <div className="lg:col-span-1">
             <Card>
@@ -638,11 +667,16 @@ export default function AIRecommendations() {
                           </div>
                         </CardContent>
                         <CardFooter>
-                          <Button variant="outline" className="w-full btn-gradient-warm" asChild>
-                            <a href={`/educational-pathways/${recommendation.pathwayId}?budget=${assessment?.budget || 'medium'}`}>
-                              View Pathway Details
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </a>
+                          <Button 
+                            variant="outline" 
+                            className="w-full btn-gradient-warm"
+                            onClick={() => setSelectedPathway({
+                              id: recommendation.pathwayId,
+                              title: recommendation.pathwayTitle
+                            })}
+                          >
+                            View Entrance Exams
+                            <ChevronRight className="ml-1 h-4 w-4" />
                           </Button>
                         </CardFooter>
                       </Card>
