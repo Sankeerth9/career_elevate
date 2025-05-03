@@ -7,9 +7,8 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { educationLevels, careerAims, states, budgetRanges } from "@shared/schema";
-import EducationBasedRecommendations from "./EducationBasedRecommendations";
 import PathwayExamDetails from "./PathwayExamDetails";
-import { useLocation, useRoute } from "wouter";
+import { useLocation } from "wouter";
 
 import {
   Card,
@@ -19,7 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -38,10 +36,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Brain,
   ChevronRight,
@@ -53,13 +49,10 @@ import {
   PieChart,
   Star,
   Lightbulb,
-  Award,
-  Rocket,
   MapPin,
-  Clock,
-  AlertCircle,
   FileText,
   Building,
+  BookOpen
 } from "lucide-react";
 
 // Define form schema
@@ -129,7 +122,7 @@ export default function AIRecommendations() {
     },
   });
 
-  // Add a useEffect to show redirect message
+  // Add a useEffect to show message
   useEffect(() => {
     setTimeout(() => {
       toast({
@@ -139,7 +132,47 @@ export default function AIRecommendations() {
     }, 500);
   }, [toast]);
 
-  // Submit handler - now gets AI recommendations
+  // Function to generate fallback recommendations based on education level
+  const getEducationBasedRecommendations = async (educationLevel: string) => {
+    const recommendations = [
+      {
+        pathwayId: 1,
+        pathwayTitle: "Engineering & Manufacturing",
+        score: 85,
+        reason: "Based on your education level and interests",
+        careerOptions: ["Software Engineer", "Mechanical Engineer", "Civil Engineer"],
+        estimatedSalary: "₹6-12 LPA",
+        growthPotential: "28% growth over 5 years",
+        suggestedCourses: ["B.Tech", "B.E."],
+        entranceExams: "JEE Main, JEE Advanced, BITSAT"
+      },
+      {
+        pathwayId: 2,
+        pathwayTitle: "Medical & Healthcare",
+        score: 78,
+        reason: "Matches your profile strengths",
+        careerOptions: ["Doctor", "Dentist", "Pharmacist"],
+        estimatedSalary: "₹8-15 LPA",
+        growthPotential: "22% growth over 5 years",
+        suggestedCourses: ["MBBS", "BDS", "B.Pharm"],
+        entranceExams: "NEET, AIIMS"
+      },
+      {
+        pathwayId: 3,
+        pathwayTitle: "Business & Management",
+        score: 72,
+        reason: "Aligns with your communication skills",
+        careerOptions: ["Business Analyst", "Marketing Manager", "HR Manager"],
+        estimatedSalary: "₹5-10 LPA",
+        growthPotential: "20% growth over 5 years",
+        suggestedCourses: ["BBA", "B.Com", "MBA"],
+        entranceExams: "CAT, XAT, MAT"
+      }
+    ];
+    return recommendations;
+  };
+
+  // Submit handler - gets AI recommendations
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
@@ -174,8 +207,8 @@ export default function AIRecommendations() {
     } catch (error) {
       console.error("Error:", error);
       
-      // If API call fails, use EducationBasedRecommendations as a fallback
-      const fallbackRecommendations = await EducationBasedRecommendations(data.educationLevel);
+      // If API call fails, use education-based recommendations as a fallback
+      const fallbackRecommendations = await getEducationBasedRecommendations(data.educationLevel);
       setRecommendations(fallbackRecommendations);
       setAssessment(data);
       
@@ -189,6 +222,18 @@ export default function AIRecommendations() {
     }
   };
 
+  // Render the pathway details or recommendations
+  if (selectedPathway) {
+    return (
+      <PathwayExamDetails
+        pathwayId={selectedPathway.id}
+        pathwayTitle={selectedPathway.title}
+        budget={assessment?.budget || 'medium'}
+        onBack={() => setSelectedPathway(null)}
+      />
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -199,32 +244,23 @@ export default function AIRecommendations() {
         />
       </Helmet>
 
-      {selectedPathway ? (
-        <PathwayExamDetails
-          pathwayId={selectedPathway.id}
-          pathwayTitle={selectedPathway.title}
-          budget={assessment?.budget || 'medium'}
-          onBack={() => setSelectedPathway(null)}
-        />
-      ) : (
-        <>
-          <div className="bg-primary-700 pt-8 pb-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-center space-x-2 mb-4">
-                <Brain className="h-8 w-8 text-primary-200" />
-                <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                  AI Career Recommendations
-                </h1>
-              </div>
-              <p className="mt-3 text-xl text-primary-200 max-w-3xl">
-                Our AI-powered system analyzes your profile, skills, and preferences to suggest ideal career pathways tailored 
-                specifically for you. Get personalized guidance for your future.
-              </p>
-            </div>
+      <div className="bg-primary-700 pt-8 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center space-x-2 mb-4">
+            <Brain className="h-8 w-8 text-primary-200" />
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              AI Career Recommendations
+            </h1>
           </div>
+          <p className="mt-3 text-xl text-primary-200 max-w-3xl">
+            Our AI-powered system analyzes your profile, skills, and preferences to suggest ideal career pathways tailored 
+            specifically for you. Get personalized guidance for your future.
+          </p>
+        </div>
+      </div>
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Form Column */}
           <div className="lg:col-span-1">
             <Card>
@@ -458,7 +494,7 @@ export default function AIRecommendations() {
                       control={form.control}
                       name="willingToRelocate"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
                             <Checkbox
                               checked={field.value}
@@ -468,15 +504,14 @@ export default function AIRecommendations() {
                           <div className="space-y-1 leading-none">
                             <FormLabel>Willing to Relocate</FormLabel>
                             <FormDescription>
-                              Are you open to relocating for education or career?
+                              Check if you're open to opportunities in different regions
                             </FormDescription>
                           </div>
                         </FormItem>
                       )}
                     />
-
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Generating Recommendations..." : "Get AI Recommendations"}
+                      {isLoading ? "Finding Matches..." : "Get AI Recommendations"}
                     </Button>
                   </form>
                 </Form>
@@ -491,109 +526,103 @@ export default function AIRecommendations() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <Rocket className="mr-2 h-5 w-5 text-primary" />
-                      AI-Powered Career Recommendations
+                      <Brain className="mr-2 h-5 w-5 text-primary-600" />
+                      Career Recommendations
                     </CardTitle>
                     <CardDescription>
-                      Based on your profile, we've identified these career pathways as excellent matches
+                      Pathways that match your profile
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4">
                     {recommendations.map((recommendation, index) => (
-                      <Card key={index} className={`bg-muted/20 ${index === 0 ? 'border-primary-600 shadow-md' : ''}`}>
-                        <CardHeader className="pb-2">
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                            <div>
-                              <CardTitle className="text-xl flex items-center">
-                                Pathway #{recommendation.pathwayId}
-                                {index === 0 && (
-                                  <Badge className="ml-2 bg-primary text-primary-foreground">
-                                    Top Match
-                                  </Badge>
-                                )}
-                              </CardTitle>
-                              <CardDescription className="mt-1">
-                                {recommendation.reason}
-                              </CardDescription>
+                      <Card key={index} className="overflow-hidden glass-card-colored animate-float-delay">
+                        <div className="h-2 bg-gradient-to-r from-primary-500 to-blue-500" />
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <GraduationCap className="mr-2 h-5 w-5 text-primary-700" />
+                              <span className="text-gradient">{recommendation.pathwayTitle || 'Career Pathway'}</span>
                             </div>
-                            <div className="mt-2 md:mt-0 flex items-center">
-                              <Progress
-                                value={recommendation.score}
-                                className="h-2 w-24 md:w-32"
-                              />
-                              <span className="ml-2 text-sm font-medium">
-                                {recommendation.score}% Match
-                              </span>
-                            </div>
-                          </div>
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              Match Score: {recommendation.score}%
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription>{recommendation.reason}</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <div className="mb-4">
                               <h4 className="text-sm font-medium flex items-center mb-2">
-                                <Briefcase className="mr-2 h-4 w-4 text-primary-600" />
+                                <Briefcase className="mr-2 h-4 w-4 text-gray-500" />
                                 Career Options
                               </h4>
-                              <div className="flex flex-wrap gap-1">
-                                {recommendation.careerOptions.map((career: string, idx: number) => (
-                                  <Badge
-                                    key={idx}
-                                    variant="outline"
-                                    className="bg-primary-50 text-primary-700"
-                                  >
+                              <div className="flex flex-wrap gap-2">
+                                {recommendation.careerOptions?.map((career: string, idx: number) => (
+                                  <Badge key={idx} variant="secondary" className="glass-card-colored">
                                     {career}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                               <div>
-                                <h4 className="text-sm font-medium flex items-center">
-                                  <DollarSign className="mr-1 h-4 w-4 text-green-600" />
+                                <h4 className="text-sm font-medium flex items-center mb-2">
+                                  <DollarSign className="mr-2 h-4 w-4 text-green-600" />
                                   Estimated Salary
                                 </h4>
-                                <p className="text-sm">{recommendation.estimatedSalary}</p>
+                                <p className="text-sm bg-green-50 p-2 rounded-md">
+                                  {recommendation.estimatedSalary}
+                                </p>
                               </div>
                               <div>
-                                <h4 className="text-sm font-medium flex items-center">
-                                  <TrendingUp className="mr-1 h-4 w-4 text-blue-600" />
+                                <h4 className="text-sm font-medium flex items-center mb-2">
+                                  <TrendingUp className="mr-2 h-4 w-4 text-orange-600" />
                                   Growth Potential
                                 </h4>
-                                <p className="text-sm">{recommendation.growthPotential}</p>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-medium flex items-center">
-                                  <Clock className="mr-1 h-4 w-4 text-orange-600" />
-                                  Time to Employment
-                                </h4>
-                                <p className="text-sm">{recommendation.timeToEmployment || "2-4 years"}</p>
+                                <p className="text-sm bg-orange-50 p-2 rounded-md">
+                                  {recommendation.growthPotential}
+                                </p>
                               </div>
                             </div>
 
-                            <div>
-                              <h4 className="text-sm font-medium flex items-center mb-2">
-                                <GraduationCap className="mr-2 h-4 w-4 text-primary-600" />
-                                Suggested Courses
-                              </h4>
-                              <div className="flex flex-wrap gap-1">
-                                {recommendation.suggestedCourses.map((course: string, idx: number) => (
-                                  <Badge key={idx} variant="outline">
-                                    {course}
-                                  </Badge>
-                                ))}
+                            {recommendation.suggestedCourses && (
+                              <div>
+                                <h4 className="text-sm font-medium flex items-center mb-2">
+                                  <BookOpen className="mr-2 h-4 w-4 text-purple-600" />
+                                  Suggested Courses
+                                </h4>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {Array.isArray(recommendation.suggestedCourses) ? 
+                                    recommendation.suggestedCourses.map((course: string, idx: number) => (
+                                      <div key={idx} className="text-sm px-2 py-1 bg-purple-50 rounded-md">
+                                        {course}
+                                      </div>
+                                    )) : 
+                                    <div className="text-sm px-2 py-1 bg-purple-50 rounded-md">
+                                      {recommendation.suggestedCourses}
+                                    </div>
+                                  }
+                                </div>
                               </div>
-                            </div>
+                            )}
 
                             {recommendation.entranceExams && (
                               <div>
                                 <h4 className="text-sm font-medium flex items-center mb-2">
-                                  <FileText className="mr-2 h-4 w-4 text-purple-600" />
+                                  <FileText className="mr-2 h-4 w-4 text-red-600" />
                                   Required Entrance Exams
                                 </h4>
-                                <p className="text-sm bg-purple-50 p-2 rounded-md">
-                                  {recommendation.entranceExams}
-                                </p>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {typeof recommendation.entranceExams === 'string' ? 
+                                    recommendation.entranceExams.split(',').map((exam: string, idx: number) => (
+                                      <div key={idx} className="text-sm px-2 py-1 bg-red-50 rounded-md">
+                                        {exam.trim()}
+                                      </div>
+                                    )) : 
+                                    <div className="text-sm px-2 py-1 bg-red-50 rounded-md">Various entrance exams</div>
+                                  }
+                                </div>
                               </div>
                             )}
 
@@ -770,9 +799,6 @@ export default function AIRecommendations() {
                     </div>
                   </div>
                 </Card>
-                
-                {/* Education-based career recommendations */}
-                <EducationBasedRecommendations />
               </div>
             )}
           </div>
